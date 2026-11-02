@@ -1,6 +1,7 @@
 """Local-first UI. No uploaded data is cached globally or sent to external APIs."""
 
 import hashlib
+from decimal import Decimal
 
 import pandas as pd
 import streamlit as st
@@ -14,6 +15,21 @@ from marketprice.labels import label
 from marketprice.models import CURRENCIES, Product
 from marketprice.samples import sample_rows
 from marketprice.validation import number
+
+
+def display_value(field, value):
+    if isinstance(value, Decimal) and (
+        "margin" in field
+        or field.endswith("_rate")
+        or field in {"suggested_discount", "max_discount", "platform_share"}
+    ):
+        return f"{value * 100:.2f}%"
+    return str(value)
+
+
+def preview(records):
+    return pd.DataFrame([{label(k): display_value(k, v) for k, v in r.items()} for r in records])
+
 
 st.set_page_config(page_title="MarketPrice • pricing you can explain", page_icon="◈", layout="wide")
 st.markdown(
@@ -68,7 +84,7 @@ with st.sidebar:
             "Each event uses your own fees and margin. Identical settings produce identical offers. Suggestions use actual current prices, with no invented reference-price increases. Extra costs use each row's currency."
         )
     st.caption("Analysis concerns unit prices and margins only (تحلیل قیمت و سود هر واحد).")
-st.download_button(
+st.columns([1, 2, 1])[1].download_button(
     "Download sample input",
     workbook_bytes({"Products": sample_rows()}),
     "sample_input.xlsx",
@@ -201,7 +217,10 @@ if upload is not None:
         if st.session_state.get("fingerprint") != fingerprint:
             st.session_state.pop("result", None)
             st.session_state.pop("download", None)
-        if st.button("Validate and calculate", type="primary", disabled=not confirmed_mapping):
+        calculate_clicked = st.columns([1, 2, 1])[1].button(
+            "Validate and calculate", type="primary", disabled=not confirmed_mapping, width="stretch"
+        )
+        if calculate_clicked:
             margins = tuple(number(x.strip(), locale) for x in margins_text.split(";") if x.strip())
             discounts = tuple(number(x.strip(), locale) for x in discount_text.split(";") if x.strip())
             bar = st.progress(0.0, text="Validating and calculating independent products")
@@ -248,7 +267,7 @@ if upload is not None:
                 col.metric(item["metric"], item["value"])
             eligible = {r["sku"] for r in result["Campaign_Simulations"] if r["safe"]}
             cols[3].metric("SKUs with a safe campaign", len(eligible))
-            st.download_button(
+            st.columns([1, 2, 1])[1].download_button(
                 "Download results workbook",
                 st.session_state["download"],
                 "marketprice_results.xlsx",
@@ -262,7 +281,7 @@ if upload is not None:
             ):
                 with tab:
                     data = [
-                        {k: str(v) for k, v in row.items() if not k.startswith("original_")}
+                        {k: display_value(k, v) for k, v in row.items() if not k.startswith("original_")}
                         for row in result[sheet][:1000]
                     ]
                     st.dataframe(pd.DataFrame(data).rename(columns=label), hide_index=True)
@@ -286,15 +305,15 @@ if upload is not None:
                 "Compare your selected margins: Increase / افزایش, Decrease / کاهش, Keep / حفظ قیمت. A higher unit margin does not prove higher total profit; demand is not estimated."
             )
             st.dataframe(
-                pd.DataFrame(result["Price_Analysis"][:1000]).astype(str).rename(columns=label),
+                preview(result["Price_Analysis"][:1000]),
                 hide_index=True,
             )
             st.subheader("Seasonal campaign offers (پیشنهاد کمپین مناسبتی)")
             st.caption(
-                "SAFE means the configured margin and discount cap are met. NO_SAFE_OFFER means no permitted discount meets them. Discounts are fractions (0.10 = 10%). The export includes every row."
+                "SAFE means the configured margin and discount cap are met. NO_SAFE_OFFER means no permitted discount meets them. Percentages shown here are rounded for display. Exact values and every product are in the export."
             )
             st.dataframe(
-                pd.DataFrame(result["Seasonal_Campaigns"][:1000]).astype(str).rename(columns=label),
+                preview(result["Seasonal_Campaigns"][:1000]),
                 hide_index=True,
             )
             with tabs[4]:
