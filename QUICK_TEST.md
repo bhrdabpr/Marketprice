@@ -1,3 +1,5 @@
+For the new flexible mode, start with [the simple catalog walkthrough](FLEXIBLE_CATALOG.md). For API usage see [API.md](API.md).
+
 # Test MarketPrice in five minutes
 
 1. Start launch.command (macOS), launch.bat (Windows), or launch.sh (Linux), then open localhost:8501.

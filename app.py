@@ -7,8 +7,9 @@ import streamlit as st
 
 from marketprice.batch import COST_FIELDS, process
 from marketprice.config import load_profiles
+from marketprice.flexible import calculate_catalog
 from marketprice.io import read_upload, workbook_bytes
-from marketprice.models import Product
+from marketprice.models import CURRENCIES, Product
 from marketprice.samples import sample_rows
 from marketprice.validation import number
 
@@ -22,6 +23,14 @@ profiles = load_profiles()
 with st.sidebar:
     st.header("Calculation settings")
     selected = st.selectbox("Marketplace for files without a marketplace column", list(profiles))
+    flexible = st.checkbox("Flexible catalog (only your included costs apply)", value=True)
+    currency = st.selectbox(
+        "Currency for files without a currency column", list(CURRENCIES), index=list(CURRENCIES).index("IRR")
+    )
+    target = st.text_input("Target margin for files without a target column", "10%")
+    st.caption(
+        "Flexible mode: absent costs/taxes are inapplicable (zero). Included columns need values for every product. Fixed tax amount → other_fixed; seller tax percentage → transaction_tax_rate. No current price → price floor only."
+    )
     locale = st.selectbox("Number format", ["en", "fa", "comma"])
     margins_text = st.text_input("Additional margin scenarios (semicolon separated)", "15%; 25%")
     discount_text = st.text_input("Campaign discounts (semicolon separated)", "5%; 10%; 15%; 20%")
@@ -50,26 +59,29 @@ if upload is not None:
             st.caption("Select the canonical field for each source column. Duplicate mappings are rejected.")
             mapping = {}
             for column in initial[0]:
-                choices = list(Product.model_fields)
+                choices = list(Product.model_fields) + ["Ignore column"]
                 if column not in choices:
                     choices = [column] + choices
                 mapping[column] = st.selectbox(
                     column, choices, index=choices.index(column), key="map_" + column
                 )
         # Import first, then map the normalized header names displayed above.
-        mapped = [dict(zip([mapping[k] for k in row], row.values())) for row in initial]
-        if len(set(mapping.values())) != len(mapping):
+        mapped = [{mapping[k]: v for k, v in row.items() if mapping[k] != "Ignore column"} for row in initial]
+        active_mapping = [v for v in mapping.values() if v != "Ignore column"]
+        if len(set(active_mapping)) != len(active_mapping):
             raise ValueError("DUPLICATE_COLUMNS: choose unique mappings")
         if "marketplace" not in mapped[0]:
             mapped = [{**row, "marketplace": selected} for row in mapped]
-        scope_enabled = st.checkbox("Configure applicable costs for this workbook", value=False)
+        scope_enabled = st.checkbox(
+            "Configure applicable costs for this workbook", value=False, disabled=flexible
+        )
         applicable = (
             st.multiselect(
                 "Applicable cost fields (all present columns are still validated)",
                 sorted(COST_FIELDS),
                 default=sorted(set(mapped[0]) & COST_FIELDS),
             )
-            if scope_enabled
+            if scope_enabled and not flexible
             else None
         )
         if scope_enabled:
@@ -78,7 +90,20 @@ if upload is not None:
             )
         st.subheader("Input preview")
         st.dataframe(pd.DataFrame(mapped[:30]).astype(str), hide_index=True)
-        settings = (selected, locale, margins_text, discount_text, kind, share, override, mapping, applicable)
+        settings = (
+            flexible,
+            currency,
+            target,
+            selected,
+            locale,
+            margins_text,
+            discount_text,
+            kind,
+            share,
+            override,
+            mapping,
+            applicable,
+        )
         fingerprint = hashlib.sha256(raw_bytes + repr(settings).encode()).hexdigest()
         if st.session_state.get("fingerprint") != fingerprint:
             st.session_state.pop("result", None)
@@ -87,9 +112,15 @@ if upload is not None:
             margins = tuple(number(x.strip(), locale) for x in margins_text.split(";") if x.strip())
             discounts = tuple(number(x.strip(), locale) for x in discount_text.split(";") if x.strip())
             bar = st.progress(0.0, text="Validating and calculating independent products")
-            result = process(
+            calculator = calculate_catalog if flexible else process
+            mode_settings = (
+                {"currency": currency, "target_margin": target, "marketplace": selected}
+                if flexible
+                else {"applicable_costs": set(applicable) if applicable is not None else None}
+            )
+            result = calculator(
                 mapped,
-                applicable_costs=set(applicable) if applicable is not None else None,
+                **mode_settings,
                 profiles=profiles,
                 locale=locale,
                 margins=margins,

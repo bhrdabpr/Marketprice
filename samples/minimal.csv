@@ -1,0 +1,4 @@
+purchase_cost,transaction_tax_rate,current_price
+100,10%,150
+100,,150
+100,0%,150

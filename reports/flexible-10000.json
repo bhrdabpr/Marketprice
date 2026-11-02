@@ -1,0 +1,12 @@
+{
+  "version": "1.2.0",
+  "rows": 10000,
+  "included_cost_fields": 11,
+  "valid": 9999,
+  "invalid": 1,
+  "calculation_seconds": 2.074,
+  "export_seconds": 12.581,
+  "xlsx_bytes": 2286458,
+  "http_smoke": "PASS",
+  "browser_download": "PASS"
+}

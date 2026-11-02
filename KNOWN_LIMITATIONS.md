@@ -1,3 +1,7 @@
+## Version 1.2 additions
+
+Flexible mode requires explicit file currency and margin settings; absent cost columns are treated as inapplicable under the displayed policy. Present blanks remain errors. Supported fee semantics are documented in FLEXIBLE_CATALOG.md; arbitrary new fee formulas still require implementation. The API is localhost-only and uses a development WSGI server. Marketplace adapters are a tested extension contract, not live Amazon/Digikala connections.
+
 # Known limitations and release boundaries
 
 No critical calculation defect is currently known **within the documented model** after the recorded tests. This is not universal production certification.

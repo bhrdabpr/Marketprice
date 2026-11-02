@@ -1,3 +1,11 @@
+# 1.2.0 — Flexible catalogs and local pricing API
+
+- File-wide currency/margin settings and absent-column cost scope, with row-level missing-value errors.
+- Two-column examples, optional generated row IDs, explicit column ignore, and current-price-free floor calculations.
+- Authenticated localhost JSON calculation endpoint and a tested vendor adapter protocol for future integrations.
+- 86 local tests; 10,000-product/11-cost calculation and XLSX export verified. See reports/flexible-10000.json.
+- Live marketplace connectors deferred; no seller credentials or vendor fee assumptions added.
+
 # Changelog
 
 ## 1.1.0 — 2026-11-02

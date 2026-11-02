@@ -1,3 +1,11 @@
+# Version 1.2 verification — 2026-11-02
+
+86 local tests passed; Ruff and mypy passed (17 source files). A real browser uploaded the minimal CSV, calculated 2 valid/1 invalid products, and downloaded an independently reconciled workbook (125 IRR recommendation, 35 IRR current profit for the first row). An actual localhost HTTP POST returned 200 and the same pricing result.
+
+A synthetic 10,000-product catalog with eleven cost fields produced 9,999 valid and one invalid product in 2.074 seconds, with XLSX export in 12.581 seconds (2,286,458 bytes). This scenario has no current prices, so campaigns are intentionally absent; it is not comparable to the earlier full campaign benchmark. See reports/flexible-10000.json. Marketplace adapter tests use fixtures; no live vendor API is connected. Hosted CI for this revision should be checked on GitHub Actions.
+
+## Earlier release evidence
+
 # Final QA report — 2026-11-02
 
 **Release assessment: tested local application and model-specific release candidate. Universal production readiness is NOT VERIFIED.** The scoped acceptance checks below pass with the stated evidence. Production deployment, marketplace-specific legal/contract correctness, and unsupported financial models are not inferred from those passes.

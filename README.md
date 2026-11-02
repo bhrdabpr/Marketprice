@@ -1,5 +1,10 @@
 # MarketPrice
 
+## Version 1.2: flexible catalogs and local API
+
+Start with purchase cost plus only the costs/taxes that apply, or process a company catalog with eleven cost fields. Set currency and margin once; incomplete products get individual errors. [Flexible catalog guide](FLEXIBLE_CATALOG.md) · [Pricing API and future marketplace adapters](API.md). Marketplace connections are not live yet.
+
+
 **Understand your price floor before you discount.**
 
 An AI-assisted portfolio project by [bhrdabpr](https://github.com/bhrdabpr), developed while studying Python. This repository is not represented as an approved CS50P submission. See [development credits](CREDITS.md).
