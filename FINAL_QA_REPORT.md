@@ -2,7 +2,7 @@
 
 **Release assessment: tested local application and model-specific release candidate. Universal production readiness is NOT VERIFIED.** The scoped acceptance checks below pass with the stated evidence. Production deployment, marketplace-specific legal/contract correctness, and unsupported financial models are not inferred from those passes.
 
-No existing project was supplied. This was a clean implementation, with original MIT-licensed source and no copied upstream engine code. No public repository push, deployment, or LinkedIn post was performed.
+No existing project was supplied. This was a clean implementation, with original MIT-licensed source and no copied upstream engine code. At the initial local audit, no public repository push, deployment or LinkedIn post had been performed. Subsequent source publication and hosted CI results are recorded below.
 
 ## Mandatory acceptance checks
 
@@ -38,7 +38,7 @@ No existing project was supplied. This was a clean implementation, with original
 | Native macOS double-click browser opening | NOT VERIFIED | Launcher was invoked from shell with --no-browser; application readiness and browser access passed |
 | Native Excel/LibreOffice visual rendering | NOT VERIFIED | Workbook structure, values, literal cells, filters and frozen headers checked with OpenPyXL; native desktop spreadsheet renderer not exercised |
 | Public hosted deployment, authentication, concurrent tenancy | NOT VERIFIED | No public service deployed; requires protected hosting, monitoring and operational review |
-| GitHub Actions hosted execution | NOT VERIFIED | Workflow supplied; local equivalent checks executed, no remote run |
+| GitHub Actions hosted execution | PASS | Linux hosted run 41429942389 passed installation, lint, typing, tests, dependency audit, benchmark, generation and browser upload/download |
 | Official marketplace/tax rules and settlement reconciliation | NOT VERIFIED | Bundled profiles are examples; no contract-specific fee/tax certification or per-fee rounding adapter |
 | 100,000-row browser interaction and peak memory | NOT VERIFIED | CLI-style calculation/export benchmark completed; browser only tested with sample workbook; peak RSS not measured |
 | Broad arbitrary fee/tax coverage | NOT VERIFIED | Unsupported structures are listed in KNOWN_LIMITATIONS.md; do not approximate them with unverified rates |
@@ -80,3 +80,7 @@ The repository root contains app.py, launcher.py and platform launchers. Run lau
 Workbook cost selection and five/ten-cost tests added. Full suite: 64 passing tests. Live-server restart is required after module changes to avoid stale Streamlit imports. Course eligibility is not claimed; see CREDITS.md.
 
 Public-repository packaging: Excel artifacts are excluded from publication. Recreate synthetic examples locally using scripts/generate_samples.py. Private merchant data remains outside the repository. Both five/ten-cost examples were exercised through the live UI; the five-cost downloaded workbook was reconciled.
+
+## Verified GitHub publication
+
+Source: https://github.com/bhrdabpr/Marketprice. Published implementation commit: 7719a599e94e2ee21853d9bbff038f5292085e2b. [Hosted Linux CI](https://github.com/bhrdabpr/Marketprice/actions/runs/41429942389) completed successfully for every step. Local full suite: 64 tests passed in 1.72s. Five/ten-cost UI scenarios each produced two valid products and one isolated missing-commission product; five-cost downloaded rows and error codes were independently checked. Docker and Windows/native-launch verification remain outstanding. No public hosted app is claimed.

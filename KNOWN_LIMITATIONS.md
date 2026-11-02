@@ -12,7 +12,7 @@ No critical calculation defect is currently known **within the documented model*
 - Price floors are bounded at 1e18; prices are positive grid points. No profit-maximizing market model, live competitor ingestion or marketplace write-back exists.
 - UI previews show at most 1,000 records. Inputs are capped at 25 MiB/100,000 rows/80 columns; large files should use CLI and adequately provisioned memory. The 100,000-row benchmark measures one batch, not multi-user hosting.
 - No authentication/tenancy, durable job queue, hosted monitoring or production penetration test. External deployment needs a secured access boundary.
-- Docker, fresh Windows/Linux installation, native double-click OS integration and native Excel rendering were not verified here. GitHub Actions is supplied but has not run on GitHub. No public service or publication exists.
+- Docker, fresh Windows/Linux installation, native double-click OS integration and native Excel rendering were not verified here. GitHub Actions passed on Linux for published commit 7719a599e94e2ee21853d9bbff038f5292085e2b. Source is published at https://github.com/bhrdabpr/Marketprice. No public application service exists.
 - Development and runtime versions are pinned; lock files are not wheel-hash manifests. Dependency scan results are time-specific.
 
 Resolve applicable limitations and verify real seller contracts before using outputs to publish live prices. A model-specific reviewed pilot is appropriate; unconditional universal production-readiness claims are not.
