@@ -19,14 +19,16 @@ MAX_ROWS = 100_000
 MAX_COLS = 80
 
 
-def read_upload(content: bytes, filename: str, mapping: dict | None = None) -> list[dict]:
+def read_upload(
+    content: bytes, filename: str, mapping: dict | None = None, *, preserve_headers: bool = False
+) -> list[dict]:
     if len(content) > MAX_BYTES:
         raise ValueError("FILE_TOO_LARGE: maximum 25 MiB")
     suffix = Path(filename).suffix.lower()
     try:
         if suffix == ".csv":
             source = csv.reader(io.StringIO(content.decode("utf-8-sig")))
-            return _rows(source, mapping)
+            return _rows(source, mapping, preserve_headers)
         if suffix != ".xlsx":
             raise ValueError("UNSUPPORTED_FILE: use .csv or .xlsx")
         with zipfile.ZipFile(io.BytesIO(content)) as archive:
@@ -42,7 +44,7 @@ def read_upload(content: bytes, filename: str, mapping: dict | None = None) -> l
             sheet = book["Products"] if "Products" in book.sheetnames else book.worksheets[0]
             # Ignore unreliable stored dimensions; bounded iteration below is authoritative.
             sheet.reset_dimensions()
-            return _rows(sheet.iter_rows(values_only=True), mapping)
+            return _rows(sheet.iter_rows(values_only=True), mapping, preserve_headers)
         finally:
             book.close()
     except (ValueError, UnicodeError, zipfile.BadZipFile, KeyError, OSError) as exc:
@@ -51,8 +53,9 @@ def read_upload(content: bytes, filename: str, mapping: dict | None = None) -> l
         raise ValueError("INVALID_FILE: malformed or unsupported workbook") from exc
 
 
-def _rows(source, mapping):
-    headers = normalize_headers(list(next(source, [])), mapping)
+def _rows(source, mapping, preserve_headers):
+    original = list(next(source, []))
+    headers = normalize_headers(original, {str(h): str(h) for h in original} if preserve_headers else mapping)
     if not headers or len(headers) > MAX_COLS or any(not h or h == "None" for h in headers):
         raise ValueError("INVALID_HEADERS")
     rows = []

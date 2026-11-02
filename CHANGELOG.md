@@ -1,3 +1,9 @@
+# Import mapping correction
+
+- Visible, reviewable Persian/English header suggestions and sample values; unresolved columns block calculation before processing.
+- Separate marketplace column selection, explicit units/rate conversions, ignored historical results, seller-tax default and exported mapping audit.
+- 90 local tests pass; original Test2 workbook now maps directly for either marketplace with the same validated counts as the prior audit. Real merchant data stays local.
+
 # 1.2.0 — Flexible catalogs and local pricing API
 
 - File-wide currency/margin settings and absent-column cost scope, with row-level missing-value errors.

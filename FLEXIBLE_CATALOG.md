@@ -1,3 +1,11 @@
+## Review columns after upload
+
+Column mapping opens automatically and preserves your original headers. Persian/English names receive editable suggestions with sample values. Unknown names must be mapped or explicitly ignored. For workbooks with both Digikala and Snapp columns, choose the marketplace first; the other marketplace and recognized historical calculations are excluded in the suggested mapping. Review this before calculating.
+
+Choose As entered for fractional rates (0.10) or percent text (10%). Choose Percentage number only when numeric 10 means 10%. For monetary inputs in toman with output currency IRR, choose TOMAN → IRR on those columns. Present blank/FALSE cells remain individual product errors. The seller tax default is a separate setting when no tax input column exists. Confirm the reviewed mapping to enable calculation. The export records source mapping and conversions.
+
+Recognition uses a local dictionary and Unicode normalization, including common Persian/Arabic character variants. It does not send merchant data to an AI service or promise to understand every header. Unknown meanings require human review. This workflow currently assumes one header row and one product per row in the selected Products/first worksheet.
+
 # Simple and company catalogs
 
 Flexible catalog mode is on by default in the UI. Choose currency and target margin once in the sidebar, then upload `.xlsx` or `.csv`. Column order and product category do not matter. Use Column mapping for your own headers; select Ignore column for descriptive fields that do not affect pricing. Product rows still need a purchase cost.

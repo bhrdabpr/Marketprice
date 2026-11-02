@@ -8,6 +8,7 @@ import streamlit as st
 from marketprice.batch import COST_FIELDS, process
 from marketprice.config import load_profiles
 from marketprice.flexible import calculate_catalog
+from marketprice.importing import IGNORE, UNMAPPED, available_markets, map_rows, suggest_mapping
 from marketprice.io import read_upload, workbook_bytes
 from marketprice.models import CURRENCIES, Product
 from marketprice.samples import sample_rows
@@ -54,22 +55,81 @@ st.caption(
 if upload is not None:
     try:
         raw_bytes = upload.getvalue()
-        initial = read_upload(raw_bytes, upload.name)
-        with st.expander("Column mapping", expanded=False):
-            st.caption("Select the canonical field for each source column. Duplicate mappings are rejected.")
+        initial = read_upload(raw_bytes, upload.name, preserve_headers=True)
+        markets = available_markets(list(initial[0]))
+        source_market = st.selectbox("Marketplace columns to use", markets) if markets else None
+        if source_market:
+            st.info(
+                "This file contains marketplace-specific columns. Only the selected marketplace's selling price, commission and shipping are used. Previous calculated prices and status columns are excluded; review the mapping below."
+            )
+        suggested = suggest_mapping(list(initial[0]), source_market)
+        with st.expander("Column mapping", expanded=True):
+            st.caption(
+                "Review the suggested fields. Choose a field for unknown headers, or explicitly Ignore column. Amounts and percentage rates are different fields."
+            )
             mapping = {}
+            conversions = {}
             for column in initial[0]:
-                choices = list(Product.model_fields) + ["Ignore column"]
-                if column not in choices:
-                    choices = [column] + choices
+                choices = [UNMAPPED] + list(Product.model_fields) + [IGNORE]
+                samples = [str(row.get(column))[:80] for row in initial[:3]]
+                st.caption("Examples: " + " | ".join(samples))
                 mapping[column] = st.selectbox(
-                    column, choices, index=choices.index(column), key="map_" + column
+                    column,
+                    choices,
+                    index=choices.index(suggested[column]),
+                    key="map_" + hashlib.sha256(raw_bytes).hexdigest()[:12] + str(source_market) + column,
                 )
-        # Import first, then map the normalized header names displayed above.
-        mapped = [{mapping[k]: v for k, v in row.items() if mapping[k] != "Ignore column"} for row in initial]
-        active_mapping = [v for v in mapping.values() if v != "Ignore column"]
-        if len(set(active_mapping)) != len(active_mapping):
-            raise ValueError("DUPLICATE_COLUMNS: choose unique mappings")
+                field = mapping[column]
+                unit_options = ["As entered"]
+                if field.endswith("_rate") or "margin" in field or field == "max_discount":
+                    unit_options.append("Percentage number")
+                elif (
+                    field in Product.model_fields
+                    and field
+                    not in {
+                        "sku",
+                        "name",
+                        "category",
+                        "quantity",
+                        "marketplace",
+                        "currency",
+                        "tax_mode",
+                        "recommendation_rule",
+                        "fee_tax_recoverable",
+                    }
+                    and currency == "IRR"
+                ):
+                    unit_options.append("TOMAN → IRR")
+                if len(unit_options) > 1:
+                    conversions[column] = st.selectbox(
+                        "Value format: " + column,
+                        unit_options,
+                        key="unit_"
+                        + hashlib.sha256(raw_bytes).hexdigest()[:12]
+                        + str(source_market)
+                        + column,
+                    )
+            confirmed_mapping = st.checkbox(
+                "I reviewed the column meanings, ignored columns and units",
+                value=False,
+                key="confirm_"
+                + hashlib.sha256(
+                    repr((raw_bytes[:128], mapping, conversions, source_market)).encode()
+                ).hexdigest(),
+            )
+        pending = [k for k, v in mapping.items() if v == UNMAPPED]
+        if pending:
+            st.warning("Choose a field or Ignore column for: " + ", ".join(pending))
+            st.stop()
+        mapped = map_rows(initial, mapping, conversions)
+        if source_market:
+            mapped = [{**row, "marketplace": source_market} for row in mapped]
+        default_tax = st.text_input("Seller tax expense rate (only when no tax column exists)", "0%")
+        st.caption(
+            "Seller expense as a percentage of selling price, separate from collected VAT. If no tax column exists, enter the rate here. Zero means no seller tax expense."
+        )
+        if "transaction_tax_rate" not in mapped[0]:
+            mapped = [{**row, "transaction_tax_rate": default_tax} for row in mapped]
         if "marketplace" not in mapped[0]:
             mapped = [{**row, "marketplace": selected} for row in mapped]
         scope_enabled = st.checkbox(
@@ -102,13 +162,17 @@ if upload is not None:
             share,
             override,
             mapping,
+            conversions,
+            confirmed_mapping,
+            source_market,
+            default_tax,
             applicable,
         )
         fingerprint = hashlib.sha256(raw_bytes + repr(settings).encode()).hexdigest()
         if st.session_state.get("fingerprint") != fingerprint:
             st.session_state.pop("result", None)
             st.session_state.pop("download", None)
-        if st.button("Validate and calculate", type="primary"):
+        if st.button("Validate and calculate", type="primary", disabled=not confirmed_mapping):
             margins = tuple(number(x.strip(), locale) for x in margins_text.split(";") if x.strip())
             discounts = tuple(number(x.strip(), locale) for x in discount_text.split(";") if x.strip())
             bar = st.progress(0.0, text="Validating and calculating independent products")
@@ -129,6 +193,18 @@ if upload is not None:
                 campaign_kind=kind,
                 override=override,
                 progress=lambda value: bar.progress(value),
+            )
+            result["Assumptions"].append(
+                {
+                    "setting": "Source column mapping",
+                    "value": {
+                        "mapping": mapping,
+                        "conversions": conversions,
+                        "selected_marketplace": source_market,
+                        "seller_tax_default": default_tax,
+                        "policy": "Marketplace columns kept separate; ignored source columns are listed in mapping.",
+                    },
+                }
             )
             with st.spinner("Preparing audited workbook…"):
                 st.session_state["download"] = workbook_bytes(result)
