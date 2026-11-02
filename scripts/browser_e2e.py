@@ -27,7 +27,10 @@ with sync_playwright() as pw:
     page.get_by_role("heading", name="MarketPrice", exact=True).wait_for(timeout=30000)
     page.screenshot(path="docs/screenshot-upload.png", full_page=True)
     page.locator("input[type=file]").set_input_files("samples/sample_input.xlsx")
-    page.get_by_label("I reviewed the column meanings, ignored columns and units").check()
+    page.get_by_text("I reviewed the column meanings, ignored columns and units", exact=True).click()
+    assert page.get_by_role(
+        "checkbox", name="I reviewed the column meanings, ignored columns and units"
+    ).is_checked()
     page.get_by_role("button", name="Validate and calculate", exact=True).click(timeout=30000)
     download_button = page.get_by_role("button", name="Download results workbook", exact=True)
     download_button.wait_for(timeout=30000)
