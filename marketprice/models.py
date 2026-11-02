@@ -35,6 +35,19 @@ FIXED_FIELDS = (
     "other_fixed",
     "expected_return_cost",
     "marketplace_extra",
+    "inbound_freight",
+    "customs_duty",
+    "insurance",
+    "inspection",
+    "financing",
+    "warranty",
+    "customer_support",
+    "software",
+    "labor",
+    "utilities",
+    "expected_loss",
+    "currency_conversion",
+    "compliance",
 )
 
 
@@ -50,6 +63,19 @@ class Product(StrictModel):
     currency: str
     current_price: Money
     purchase_cost: Money
+    inbound_freight: Money = D(0)
+    customs_duty: Money = D(0)
+    insurance: Money = D(0)
+    inspection: Money = D(0)
+    financing: Money = D(0)
+    warranty: Money = D(0)
+    customer_support: Money = D(0)
+    software: Money = D(0)
+    labor: Money = D(0)
+    utilities: Money = D(0)
+    expected_loss: Money = D(0)
+    currency_conversion: Money = D(0)
+    compliance: Money = D(0)
     shipping: Money
     fulfillment: Money
     packaging: Money

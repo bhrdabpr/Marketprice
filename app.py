@@ -10,11 +10,23 @@ from marketprice.config import load_profiles
 from marketprice.flexible import calculate_catalog
 from marketprice.importing import IGNORE, UNMAPPED, available_markets, map_rows, suggest_mapping
 from marketprice.io import read_upload, workbook_bytes
+from marketprice.labels import label
 from marketprice.models import CURRENCIES, Product
 from marketprice.samples import sample_rows
 from marketprice.validation import number
 
 st.set_page_config(page_title="MarketPrice • pricing you can explain", page_icon="◈", layout="wide")
+st.markdown(
+    """<style>
+.stApp {background:#f1f2f4;color:#111111;}
+[data-testid="stSidebar"] {background:#e5e7eb;}
+.stButton, .stDownloadButton {display:flex;justify-content:center;}
+.stButton button, .stDownloadButton button {background:#2563eb;color:#ffffff;border:0;border-radius:8px;min-height:44px;}
+.stButton button p, .stDownloadButton button p {color:#ffffff;}
+.stButton button:hover, .stDownloadButton button:hover {background:#1d4ed8;color:#ffffff;}
+</style>""",
+    unsafe_allow_html=True,
+)
 st.title("MarketPrice")
 st.caption("Know your price floor. Test your campaign. Keep the calculation trail.")
 st.info(
@@ -41,7 +53,21 @@ with st.sidebar:
     rtl = st.checkbox("راست به چپ / RTL labels")
     if rtl:
         st.markdown("<style>h1,h2,h3,p {direction:rtl;text-align:right}</style>", unsafe_allow_html=True)
-    st.caption("No income tax or withholding model. Inventory is not a sales forecast.")
+    with st.expander("Seasonal offers (پیشنهادهای مناسبتی)"):
+        event_names = st.multiselect(
+            "Events (مناسبت ها)",
+            ["Black Friday (جمعه سیاه)", "Christmas (کریسمس)", "Nowruz (نوروز)", "Yalda (یلدا)"],
+            default=["Black Friday (جمعه سیاه)", "Nowruz (نوروز)"],
+        )
+        events = []
+        for event_name in event_names:
+            event_margin = st.text_input(event_name + " — margin (حاشیه سود)", "5%")
+            event_cost = st.text_input(event_name + " — extra cost per item (هزینه اضافی هر واحد)", "0")
+            events.append((event_name, event_margin, event_cost))
+        st.caption(
+            "Each event uses your own fees and margin. Identical settings produce identical offers. Suggestions use actual current prices, with no invented reference-price increases. Extra costs use each row's currency."
+        )
+    st.caption("Analysis concerns unit prices and margins only (تحلیل قیمت و سود هر واحد).")
 st.download_button(
     "Download sample input",
     workbook_bytes({"Products": sample_rows()}),
@@ -63,6 +89,7 @@ if upload is not None:
                 "This file contains marketplace-specific columns. Only the selected marketplace's selling price, commission and shipping are used. Previous calculated prices and status columns are excluded; review the mapping below."
             )
         suggested = suggest_mapping(list(initial[0]), source_market)
+        suggested = {k: IGNORE if v == "quantity" else v for k, v in suggested.items()}
         with st.expander("Column mapping", expanded=True):
             st.caption(
                 "Review the suggested fields. Choose a field for unknown headers, or explicitly Ignore column. Amounts and percentage rates are different fields."
@@ -70,13 +97,14 @@ if upload is not None:
             mapping = {}
             conversions = {}
             for column in initial[0]:
-                choices = [UNMAPPED] + list(Product.model_fields) + [IGNORE]
+                choices = [UNMAPPED] + [f for f in Product.model_fields if f != "quantity"] + [IGNORE]
                 samples = [str(row.get(column))[:80] for row in initial[:3]]
                 st.caption("Examples: " + " | ".join(samples))
                 mapping[column] = st.selectbox(
                     column,
                     choices,
                     index=choices.index(suggested[column]),
+                    format_func=lambda field: label(field) if field in Product.model_fields else field,
                     key="map_" + hashlib.sha256(raw_bytes).hexdigest()[:12] + str(source_market) + column,
                 )
                 field = mapping[column]
@@ -164,6 +192,7 @@ if upload is not None:
             mapping,
             conversions,
             confirmed_mapping,
+            events,
             source_market,
             default_tax,
             applicable,
@@ -193,6 +222,7 @@ if upload is not None:
                 campaign_kind=kind,
                 override=override,
                 progress=lambda value: bar.progress(value),
+                events=tuple((name, number(m, locale), number(cost, locale)) for name, m, cost in events),
             )
             result["Assumptions"].append(
                 {
@@ -235,7 +265,7 @@ if upload is not None:
                         {k: str(v) for k, v in row.items() if not k.startswith("original_")}
                         for row in result[sheet][:1000]
                     ]
-                    st.dataframe(pd.DataFrame(data), hide_index=True)
+                    st.dataframe(pd.DataFrame(data).rename(columns=label), hide_index=True)
                     st.caption("Preview limited to 1,000 records. Download includes every input row.")
             with tabs[0]:
                 values = [
@@ -251,6 +281,22 @@ if upload is not None:
             with tabs[3]:
                 st.dataframe(pd.DataFrame(result["Errors"]), hide_index=True)
                 st.dataframe(pd.DataFrame(result["Warnings"]), hide_index=True)
+            st.subheader("Price analysis (تحلیل قیمت)")
+            st.caption(
+                "Compare your selected margins: Increase / افزایش, Decrease / کاهش, Keep / حفظ قیمت. A higher unit margin does not prove higher total profit; demand is not estimated."
+            )
+            st.dataframe(
+                pd.DataFrame(result["Price_Analysis"][:1000]).astype(str).rename(columns=label),
+                hide_index=True,
+            )
+            st.subheader("Seasonal campaign offers (پیشنهاد کمپین مناسبتی)")
+            st.caption(
+                "SAFE means the configured margin and discount cap are met. NO_SAFE_OFFER means no permitted discount meets them. Discounts are fractions (0.10 = 10%). The export includes every row."
+            )
+            st.dataframe(
+                pd.DataFrame(result["Seasonal_Campaigns"][:1000]).astype(str).rename(columns=label),
+                hide_index=True,
+            )
             with tabs[4]:
                 st.json(result["Assumptions"])
                 st.caption(

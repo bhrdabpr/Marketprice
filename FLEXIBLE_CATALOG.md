@@ -32,7 +32,7 @@ For a tax equal to 10% of selling price, use `transaction_tax_rate` = `10%` inst
 - No selling price column means floor calculations only; add current_price for actual current margin and campaign analysis. No campaigns are fabricated from a zero placeholder.
 - Multiple currencies retain their own units; there is no implicit foreign exchange or TOMAN-to-IRR conversion. Convert explicitly before combining costs. One toman is ten rial.
 
-Fourteen supported cost fields cover shipping, fulfillment, packaging, warehouse, overhead, advertising, other fixed costs, expected return cost, marketplace extras, percentage/fixed commission, percentage/fixed payment fee and other percentage fees. Tax components are separate. Choose any subset, including eleven costs for a company catalog. New fee types with different calculation bases require extending the model rather than mislabeling a field.
+Twenty-seven supported cost fields cover acquisition-related allocations (see COST_GUIDE.md), plus shipping, fulfillment, packaging, warehouse, overhead, advertising, other fixed costs, expected return cost, marketplace extras, percentage/fixed commission, percentage/fixed payment fee and other percentage fees. Tax components are separate. Choose any subset, including eleven costs for a company catalog. New fee types with different calculation bases require extending the model rather than mislabeling a field.
 
 Use strict mode by turning off Flexible catalog when every financial field must be explicitly provided. Existing strict CLI behavior remains unchanged.
 

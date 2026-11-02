@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from .models import Issue, Product, Profile
+from .models import FIXED_FIELDS, Issue, Product, Profile
 
 DIGITS = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩٫٬٪", "01234567890123456789.,%")
 ALIASES = {
@@ -74,6 +74,8 @@ def validate(raw: dict, row: int, profiles: dict[str, Profile], locale: str = "e
     sku = str(raw.get("sku", ""))
     for field, value in raw.items():
         if value is None or (isinstance(value, str) and not value.strip()):
+            if field in FIXED_FIELDS and not Product.model_fields[field].is_required():
+                data[field] = None  # Present blanks must not activate an absent-column zero default.
             if field in OPTIONAL:
                 continue
             # Leave required blanks absent: Pydantic reports missing, never zero.

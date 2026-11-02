@@ -24,5 +24,8 @@ def recommend(p: Product, rule: Profile, margin: Decimal) -> dict:
         "target_margin": margin,
         "floor": floor,
         "recommended_price": desired,
+        "actual_margin": ledger.margin,
+        "profit": ledger.profit,
+        "customer_gross": ledger.customer_gross,
         "explanation": f"{p.recommendation_rule}; floor {floor}; rounded upward to {p.increment}; no demand optimization",
     }

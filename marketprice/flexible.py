@@ -81,6 +81,9 @@ def calculate_catalog(
         record.update({"original_" + k: v for k, v in raw.items()})
     if "current_price" not in columns:
         result["Campaign_Simulations"] = []
+        result["Seasonal_Campaigns"] = []
+        for decision in result["Price_Analysis"]:
+            decision.update(current_price=None, price_change=None, action="SET_PRICE")
         for record in result["Product_Calculations"]:
             for field in fields(Ledger):
                 record.pop(field.name, None)

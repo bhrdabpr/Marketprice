@@ -3,6 +3,7 @@
 import re
 import unicodedata
 
+from .labels import PERSIAN
 from .models import Product
 from .validation import ALIASES as LEGACY_ALIASES
 from .validation import number
@@ -83,6 +84,8 @@ def available_markets(headers: list[str]) -> list[str]:
 
 def suggest_mapping(headers: list[str], marketplace: str | None = None) -> dict[str, str]:
     aliases = {header_key(k): v for k, v in ALIASES.items()}
+    aliases.update({header_key(k.replace("_", " ")): k for k in Product.model_fields})
+    aliases.update({header_key(v): k for k, v in PERSIAN.items() if k in Product.model_fields})
     for names in MARKET_COLUMNS.values():
         aliases.update({header_key(k): IGNORE for k in names})
     aliases.update({header_key(k): IGNORE for k in OUTPUT_COLUMNS})

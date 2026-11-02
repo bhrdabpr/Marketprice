@@ -4,10 +4,12 @@ from collections import Counter
 from collections.abc import Callable
 from decimal import Decimal
 
+from .analysis import price_analysis, seasonal_offers
 from .campaign import discount_limits, simulate
 from .config import load_profiles
 from .engine import VERSION, CalculationError, evaluate, floor_price
-from .models import Product
+from .labels import label
+from .models import FIXED_FIELDS, Product
 from .recommendation import recommend
 from .validation import issue, validate
 
@@ -31,6 +33,7 @@ COST_FIELDS = frozenset(
         "other_rate",
     }
 )
+COST_FIELDS = COST_FIELDS | frozenset(FIXED_FIELDS)
 
 
 def process(
@@ -45,10 +48,21 @@ def process(
     campaign_kind="percent",
     override=False,
     progress: Callable | None = None,
+    events: tuple[tuple[str, Decimal, Decimal], ...] = (),
 ) -> dict[str, list[dict]]:
     profiles = profiles if profiles is not None else load_profiles()
     if applicable_costs is not None and not applicable_costs <= COST_FIELDS:
         raise ValueError("Unknown applicable cost field")
+    if len(events) > 10 or any(
+        not isinstance(name, str)
+        or not 0 < len(name) <= 128
+        or not margin.is_finite()
+        or not 0 <= margin < 1
+        or not cost.is_finite()
+        or not 0 <= cost <= D("1e18")
+        for name, margin, cost in events
+    ):
+        raise ValueError("INVALID_CAMPAIGN_SETTINGS")
     for margin in margins:
         if not margin.is_finite() or not 0 <= margin < 1:
             raise ValueError("INVALID_MARGIN_TARGET")
@@ -71,6 +85,8 @@ def process(
             "Marketplace_Rules",
             "Audit_Trail",
             "Data_Dictionary",
+            "Price_Analysis",
+            "Seasonal_Campaigns",
         )
     }
     counts = Counter(str(r.get("sku", "")).strip() for r in rows)
@@ -130,6 +146,14 @@ def process(
                 record["status"] = "VALID"
                 record["recommended_price"] = primary["recommended_price"]
                 out["Price_Recommendations"].extend(recs)
+                out["Price_Analysis"].extend({**key, "break_even": record["break_even"], **price_analysis(p, rule, rec)} for rec in recs)
+                for event in events:
+                    try:
+                        out["Seasonal_Campaigns"].append(
+                            {**key, **seasonal_offers(p, rule, event, platform_share)}
+                        )
+                    except CalculationError as exc:
+                        out["Warnings"].append({**key, "code": "SEASONAL_UNAVAILABLE", "message": str(exc)})
                 valid += 1
                 for discount in discounts:
                     try:
@@ -215,6 +239,7 @@ def process(
     out["Data_Dictionary"] = [
         {
             "field": f,
+            "label": label(f),
             "required": v.is_required(),
             "type": str(v.annotation),
             "definition": FIELD_HELP.get(f, "Explicit per-order amount in row currency; no silent zero."),

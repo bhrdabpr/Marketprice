@@ -1,6 +1,9 @@
-# MarketPrice
+# MarketPrice 1.3
 
-## Version 1.2: flexible catalogs and local API
+[Bilingual cost and pricing guide](COST_GUIDE.md): expanded optional costs, three margin scenarios, break-even, increase/decrease/keep analysis and configurable Black Friday, Christmas, Nowruz and Yalda offers. All campaign suggestions are constrained by entered costs, margins and discount limits.
+
+
+## Flexible catalogs and local API
 
 Start with purchase cost plus only the costs/taxes that apply, or process a company catalog with eleven cost fields. Set currency and margin once; incomplete products get individual errors. [Flexible catalog guide](FLEXIBLE_CATALOG.md) · [Pricing API and future marketplace adapters](API.md). Marketplace connections are not live yet.
 
@@ -36,7 +39,7 @@ Windows manual commands use `.venv\Scripts\python.exe`. If installation fails, i
 3. Upload `.xlsx` or UTF-8 `.csv`. Choose a number locale and map columns if needed.
 4. For a workbook with fewer cost types, enable **Configure applicable costs for this workbook** and select its applicable costs. Absent unselected cost columns are explicitly treated as inapplicable; blanks in present columns still cause individual product errors. Purchase cost and tax configuration remain required.
 5. Select extra margin scenarios and campaign funding. Click **Validate and calculate**.
-6. Review errors and warnings, then download all ten result sheets.
+6. Review errors and warnings, then download all twelve result sheets.
 
 The sample intentionally includes one missing-shipping row. A successful sample run gives two valid products, one invalid product, and **117.65 USD** for the golden 20% target. This is an example, not a recommended price for real merchandise.
 

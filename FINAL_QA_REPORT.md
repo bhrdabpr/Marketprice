@@ -1,3 +1,9 @@
+# Version 1.3 verification
+
+97 local tests passed; Ruff and mypy passed (20 source files). Independent numerical tests reconcile three margin floors, break-even, increase/decrease/keep decisions and margin-constrained seasonal discounts. New optional cost fields are included in the ledger and preserve present-blank product errors. Twelve report sections now include Price_Analysis and Seasonal_Campaigns. The browser workflow verifies three normal margin scenarios and both default seasonal reports. Current hosted results are available under GitHub Actions. Research sources, assumptions and worked examples are in COST_GUIDE.md.
+
+## Earlier release evidence
+
 # Version 1.2 verification — 2026-11-02
 
 86 local tests passed; Ruff and mypy passed (17 source files). A real browser uploaded the minimal CSV, calculated 2 valid/1 invalid products, and downloaded an independently reconciled workbook (125 IRR recommendation, 35 IRR current profit for the first row). An actual localhost HTTP POST returned 200 and the same pricing result.

@@ -44,7 +44,7 @@ with sync_playwright() as pw:
     page.get_by_role("tab", name="Errors & warnings").click()
     page.screenshot(path="docs/screenshot-errors.png", full_page=True)
     book = load_workbook("reports/browser_download.xlsx", data_only=True)
-    assert len(book.sheetnames) == 10
+    assert len(book.sheetnames) == 12
     sheet = book["Price_Recommendations"]
     records = list(sheet.values)
     headers = records[0]
@@ -52,6 +52,9 @@ with sync_playwright() as pw:
     golden = next(row for row in rows if row["sku"] == "GOLDEN-001" and float(row["target_margin"]) == 0.2)
     assert golden["recommended_price"] == 117.65
     assert book["Product_Calculations"].max_row == 4
+    assert book["Price_Analysis"].max_row == 7
+    assert book["Seasonal_Campaigns"].max_row == 5
+    assert {row["target_margin"] for row in rows if row["sku"] == "GOLDEN-001"} == {0.15, 0.2, 0.25}
     assert any("MISSING_SHIPPING_COST" in str(row) for row in book["Errors"].values)
     assert page.get_by_text("Processing failed safely.", exact=False).count() == 0
     report = {

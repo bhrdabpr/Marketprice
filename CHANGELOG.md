@@ -1,3 +1,12 @@
+# 1.3.0 — Bilingual costs, price decisions and seasonal offers
+
+- Thirteen optional per-unit cost categories, with present blanks still invalid.
+- English labels followed by Persian translations, with bilingual header suggestions.
+- Price_Analysis and Seasonal_Campaigns export sheets; primary plus two additional margin scenarios, per-unit break-even, price movements and configurable seasonal offers.
+- Inventory ignored by default in the UI; no sales-volume forecast.
+- Light grey theme, blue buttons, black body text and centered action buttons.
+- 97 local tests pass, including independent numerical scenario/campaign checks. Research and worked examples: COST_GUIDE.md.
+
 # Import mapping correction
 
 - Visible, reviewable Persian/English header suggestions and sample values; unresolved columns block calculation before processing.

@@ -25,7 +25,7 @@ Keep that terminal open. Use the same token in the calling client (do not commit
 }
 ```
 
-The response uses the same ten report sections as Excel. A has a recommended price of **125 IRR**, current profit **35 IRR**, and campaign simulations. B has a row-level tax configuration error. HTTP 200 indicates the batch was processed; always inspect individual product statuses. Financial Decimal values are returned as strings, avoiding JSON floating-point loss.
+The response uses the same twelve report sections as Excel. A has a recommended price of **125 IRR**, current profit **35 IRR**, and campaign simulations. B has a row-level tax configuration error. HTTP 200 indicates the batch was processed; always inspect individual product statuses. Financial Decimal values are returned as strings, avoiding JSON floating-point loss.
 
 Optional settings: `marketplace` (default `generic`) and `locale` (`en`, `fa`, `comma`). Supported per-product fields match the UI, including cost components, tax treatment, campaign margin, maximum discount and inventory. Included fields must be supplied for every product; zero is different from missing. Missing purchase cost is always an error. Maximum input: 25 MiB and 100,000 rows; use batches for larger catalogs. HTTP 400 is an invalid request, 401 an invalid token, 413 an oversized/empty body.
 
