@@ -1,0 +1,263 @@
+{
+  "samples/sample_input.xlsx": {
+    "sheets": [
+      "Products"
+    ],
+    "dimensions": {
+      "Products": [
+        4,
+        33
+      ]
+    },
+    "formula_cells": 0,
+    "filters": {
+      "Products": "A1:AG4"
+    },
+    "freeze_panes": {
+      "Products": "C2"
+    }
+  },
+  "samples/sample_output.xlsx": {
+    "sheets": [
+      "Summary",
+      "Product_Calculations",
+      "Price_Recommendations",
+      "Campaign_Simulations",
+      "Errors",
+      "Warnings",
+      "Assumptions",
+      "Marketplace_Rules",
+      "Audit_Trail",
+      "Data_Dictionary"
+    ],
+    "dimensions": {
+      "Summary": [
+        5,
+        2
+      ],
+      "Product_Calculations": [
+        4,
+        61
+      ],
+      "Price_Recommendations": [
+        3,
+        7
+      ],
+      "Campaign_Simulations": [
+        9,
+        16
+      ],
+      "Errors": [
+        2,
+        6
+      ],
+      "Warnings": [
+        2,
+        1
+      ],
+      "Assumptions": [
+        5,
+        2
+      ],
+      "Marketplace_Rules": [
+        9,
+        15
+      ],
+      "Audit_Trail": [
+        4,
+        45
+      ],
+      "Data_Dictionary": [
+        38,
+        4
+      ]
+    },
+    "formula_cells": 0,
+    "filters": {
+      "Summary": "A1:B5",
+      "Product_Calculations": "A1:BI4",
+      "Price_Recommendations": "A1:G3",
+      "Campaign_Simulations": "A1:P9",
+      "Errors": "A1:F2",
+      "Warnings": null,
+      "Assumptions": "A1:B5",
+      "Marketplace_Rules": "A1:O9",
+      "Audit_Trail": "A1:AS4",
+      "Data_Dictionary": "A1:D38"
+    },
+    "freeze_panes": {
+      "Summary": "C2",
+      "Product_Calculations": "C2",
+      "Price_Recommendations": "C2",
+      "Campaign_Simulations": "C2",
+      "Errors": "C2",
+      "Warnings": "C2",
+      "Assumptions": "C2",
+      "Marketplace_Rules": "C2",
+      "Audit_Trail": "C2",
+      "Data_Dictionary": "C2"
+    }
+  },
+  "reports/browser_download.xlsx": {
+    "sheets": [
+      "Summary",
+      "Product_Calculations",
+      "Price_Recommendations",
+      "Campaign_Simulations",
+      "Errors",
+      "Warnings",
+      "Assumptions",
+      "Marketplace_Rules",
+      "Audit_Trail",
+      "Data_Dictionary"
+    ],
+    "dimensions": {
+      "Summary": [
+        5,
+        2
+      ],
+      "Product_Calculations": [
+        4,
+        29
+      ],
+      "Price_Recommendations": [
+        7,
+        7
+      ],
+      "Campaign_Simulations": [
+        9,
+        16
+      ],
+      "Errors": [
+        2,
+        6
+      ],
+      "Warnings": [
+        2,
+        1
+      ],
+      "Assumptions": [
+        5,
+        2
+      ],
+      "Marketplace_Rules": [
+        9,
+        15
+      ],
+      "Audit_Trail": [
+        4,
+        9
+      ],
+      "Data_Dictionary": [
+        38,
+        4
+      ]
+    },
+    "formula_cells": 0,
+    "filters": {
+      "Summary": "A1:B5",
+      "Product_Calculations": "A1:AC4",
+      "Price_Recommendations": "A1:G7",
+      "Campaign_Simulations": "A1:P9",
+      "Errors": "A1:F2",
+      "Warnings": null,
+      "Assumptions": "A1:B5",
+      "Marketplace_Rules": "A1:O9",
+      "Audit_Trail": "A1:I4",
+      "Data_Dictionary": "A1:D38"
+    },
+    "freeze_panes": {
+      "Summary": "C2",
+      "Product_Calculations": "C2",
+      "Price_Recommendations": "C2",
+      "Campaign_Simulations": "C2",
+      "Errors": "C2",
+      "Warnings": "C2",
+      "Assumptions": "C2",
+      "Marketplace_Rules": "C2",
+      "Audit_Trail": "C2",
+      "Data_Dictionary": "C2"
+    }
+  },
+  "reports/cli_output.xlsx": {
+    "sheets": [
+      "Summary",
+      "Product_Calculations",
+      "Price_Recommendations",
+      "Campaign_Simulations",
+      "Errors",
+      "Warnings",
+      "Assumptions",
+      "Marketplace_Rules",
+      "Audit_Trail",
+      "Data_Dictionary"
+    ],
+    "dimensions": {
+      "Summary": [
+        5,
+        2
+      ],
+      "Product_Calculations": [
+        4,
+        61
+      ],
+      "Price_Recommendations": [
+        3,
+        7
+      ],
+      "Campaign_Simulations": [
+        9,
+        16
+      ],
+      "Errors": [
+        2,
+        6
+      ],
+      "Warnings": [
+        2,
+        1
+      ],
+      "Assumptions": [
+        5,
+        2
+      ],
+      "Marketplace_Rules": [
+        9,
+        15
+      ],
+      "Audit_Trail": [
+        4,
+        45
+      ],
+      "Data_Dictionary": [
+        38,
+        4
+      ]
+    },
+    "formula_cells": 0,
+    "filters": {
+      "Summary": "A1:B5",
+      "Product_Calculations": "A1:BI4",
+      "Price_Recommendations": "A1:G3",
+      "Campaign_Simulations": "A1:P9",
+      "Errors": "A1:F2",
+      "Warnings": null,
+      "Assumptions": "A1:B5",
+      "Marketplace_Rules": "A1:O9",
+      "Audit_Trail": "A1:AS4",
+      "Data_Dictionary": "A1:D38"
+    },
+    "freeze_panes": {
+      "Summary": "C2",
+      "Product_Calculations": "C2",
+      "Price_Recommendations": "C2",
+      "Campaign_Simulations": "C2",
+      "Errors": "C2",
+      "Warnings": "C2",
+      "Assumptions": "C2",
+      "Marketplace_Rules": "C2",
+      "Audit_Trail": "C2",
+      "Data_Dictionary": "C2"
+    }
+  }
+}

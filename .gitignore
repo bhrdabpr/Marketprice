@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.env
+.DS_Store
+
+# Merchant data must remain outside the public repository
+Test2*
+private/
+merchant-data/
+
+reports/app-test-debug.txt
+reports/local-launch.log
+
+# Generate workbook artifacts locally; publish source and CSV only
+samples/*.xlsx
+reports/*.xlsx

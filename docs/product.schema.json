@@ -1,0 +1,476 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "sku": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Sku",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "type": "string"
+    },
+    "category": {
+      "title": "Category",
+      "type": "string"
+    },
+    "currency": {
+      "title": "Currency",
+      "type": "string"
+    },
+    "current_price": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Current Price"
+    },
+    "purchase_cost": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Purchase Cost"
+    },
+    "shipping": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Shipping"
+    },
+    "fulfillment": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Fulfillment"
+    },
+    "packaging": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Packaging"
+    },
+    "warehouse": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Warehouse"
+    },
+    "overhead": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Overhead"
+    },
+    "advertising": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Advertising"
+    },
+    "other_fixed": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Other Fixed"
+    },
+    "expected_return_cost": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Expected Return Cost"
+    },
+    "marketplace_extra": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Marketplace Extra"
+    },
+    "commission_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Commission Rate"
+    },
+    "commission_fixed": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Commission Fixed"
+    },
+    "payment_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Payment Rate"
+    },
+    "payment_fixed": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Payment Fixed"
+    },
+    "other_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Other Rate"
+    },
+    "transaction_tax_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Transaction Tax Rate"
+    },
+    "tax_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Tax Rate"
+    },
+    "tax_mode": {
+      "enum": [
+        "inclusive",
+        "exclusive"
+      ],
+      "title": "Tax Mode",
+      "type": "string"
+    },
+    "input_tax_credit": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Input Tax Credit"
+    },
+    "fee_tax_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Fee Tax Rate"
+    },
+    "fee_tax_recoverable": {
+      "title": "Fee Tax Recoverable",
+      "type": "boolean"
+    },
+    "target_margin": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Target Margin"
+    },
+    "minimum_margin": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Minimum Margin"
+    },
+    "campaign_margin": {
+      "anyOf": [
+        {
+          "exclusiveMaximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Campaign Margin"
+    },
+    "max_discount": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Max Discount"
+    },
+    "increment": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "maximum": 1e+18,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Increment"
+    },
+    "recommendation_rule": {
+      "enum": [
+        "floor",
+        "match_competitor",
+        "keep_current"
+      ],
+      "title": "Recommendation Rule",
+      "type": "string"
+    },
+    "quantity": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Quantity"
+    },
+    "competitor_price": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Competitor Price"
+    },
+    "price_ceiling": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Price Ceiling"
+    },
+    "price_minimum": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Price Minimum"
+    }
+  },
+  "required": [
+    "sku",
+    "name",
+    "marketplace",
+    "category",
+    "currency",
+    "current_price",
+    "purchase_cost",
+    "shipping",
+    "fulfillment",
+    "packaging",
+    "warehouse",
+    "overhead",
+    "advertising",
+    "other_fixed",
+    "expected_return_cost",
+    "marketplace_extra",
+    "commission_rate",
+    "commission_fixed",
+    "payment_rate",
+    "payment_fixed",
+    "other_rate",
+    "transaction_tax_rate",
+    "tax_rate",
+    "tax_mode",
+    "input_tax_credit",
+    "fee_tax_rate",
+    "fee_tax_recoverable",
+    "target_margin",
+    "minimum_margin",
+    "campaign_margin",
+    "max_discount",
+    "increment",
+    "recommendation_rule"
+  ],
+  "title": "Product",
+  "type": "object"
+}

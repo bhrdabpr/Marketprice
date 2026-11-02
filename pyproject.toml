@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "universal-marketprice"
+version = "1.1.0"
+requires-python = ">=3.12"
+dynamic = ["dependencies"]
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+[tool.setuptools.packages.find]
+include = ["marketprice*"]
+[tool.setuptools.package-data]
+marketprice = ["rules/*.json"]
+[project.scripts]
+marketprice = "marketprice.cli:main"
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+[tool.ruff]
+line-length = 110
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true

@@ -1,0 +1,10 @@
+{
+  "rows": 100000,
+  "calculation_seconds": 28.213276083000892,
+  "export_seconds": 251.69073862500045,
+  "total_seconds": 279.90401470800134,
+  "xlsx_bytes": 92548887,
+  "python": "3.13.3",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "machine": "arm64"
+}

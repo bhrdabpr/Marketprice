@@ -1,0 +1,18 @@
+# Known limitations and release boundaries
+
+No critical calculation defect is currently known **within the documented model** after the recorded tests. This is not universal production certification.
+
+- Marketplace schedules are examples. No official Digikala, Snapp Shop, Amazon, eBay, Shopify or WooCommerce fee/tax policy was verified or imported.
+- Only progressive marginal commission tiers, not retroactive whole-price tiers, minimum/capped fees or arbitrary nonlinear fee functions. These require new validated adapters.
+- One full-transaction sales-tax base. No mixed taxable components, compound taxes, income tax or withholding accounting. Per-fee/per-tax cash settlement rounding is not modeled.
+- User-entered expected return loss is a fixed expected cost. Returns/refund event probabilities and recoveries are not calculated automatically.
+- Maximum-discount fields describe seller-funded campaigns only. Shared/platform funding is available in explicit simulations. Under nonmonotone tiers, test each actual discount; a maximum limit is not a blanket guarantee.
+- Optional explicit currency conversion is a developer API, not an upload/UI conversion workflow. Never mix monetary units in a row. The currency registry is deliberately finite.
+- Profile editing requires JSON; the UI selects profiles but does not provide a visual rule editor. Category campaigns may use separate profile IDs. Baseline financial inputs are conservatively required even if a profile ignores a fallback field.
+- Price floors are bounded at 1e18; prices are positive grid points. No profit-maximizing market model, live competitor ingestion or marketplace write-back exists.
+- UI previews show at most 1,000 records. Inputs are capped at 25 MiB/100,000 rows/80 columns; large files should use CLI and adequately provisioned memory. The 100,000-row benchmark measures one batch, not multi-user hosting.
+- No authentication/tenancy, durable job queue, hosted monitoring or production penetration test. External deployment needs a secured access boundary.
+- Docker, fresh Windows/Linux installation, native double-click OS integration and native Excel rendering were not verified here. GitHub Actions is supplied but has not run on GitHub. No public service or publication exists.
+- Development and runtime versions are pinned; lock files are not wheel-hash manifests. Dependency scan results are time-specific.
+
+Resolve applicable limitations and verify real seller contracts before using outputs to publish live prices. A model-specific reviewed pilot is appropriate; unconditional universal production-readiness claims are not.

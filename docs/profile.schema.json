@@ -1,0 +1,177 @@
+{
+  "$defs": {
+    "Tier": {
+      "additionalProperties": false,
+      "properties": {
+        "up_to": {
+          "anyOf": [
+            {
+              "maximum": 1e+18,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Up To"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Rate"
+        }
+      },
+      "required": [
+        "up_to",
+        "rate"
+      ],
+      "title": "Tier",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "effective_date": {
+      "title": "Effective Date",
+      "type": "string"
+    },
+    "source": {
+      "title": "Source",
+      "type": "string"
+    },
+    "official": {
+      "const": false,
+      "default": false,
+      "title": "Official",
+      "type": "boolean"
+    },
+    "commission_base": {
+      "enum": [
+        "net",
+        "gross",
+        "list",
+        "settlement"
+      ],
+      "title": "Commission Base",
+      "type": "string"
+    },
+    "payment_base": {
+      "enum": [
+        "net",
+        "gross",
+        "list",
+        "settlement"
+      ],
+      "title": "Payment Base",
+      "type": "string"
+    },
+    "other_base": {
+      "enum": [
+        "net",
+        "gross",
+        "list",
+        "settlement"
+      ],
+      "title": "Other Base",
+      "type": "string"
+    },
+    "subsidy_taxable": {
+      "title": "Subsidy Taxable",
+      "type": "boolean"
+    },
+    "tiers": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Tier"
+      },
+      "title": "Tiers",
+      "type": "array"
+    },
+    "category_tiers": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/Tier"
+        },
+        "type": "array"
+      },
+      "title": "Category Tiers",
+      "type": "object"
+    },
+    "campaign_commission_rate": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Campaign Commission Rate"
+    },
+    "campaign_fixed_fee": {
+      "anyOf": [
+        {
+          "maximum": 1e+18,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "Campaign Fixed Fee"
+    },
+    "required_fields": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Required Fields",
+      "type": "array"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "version",
+    "effective_date",
+    "source",
+    "commission_base",
+    "payment_base",
+    "other_base",
+    "subsidy_taxable",
+    "campaign_fixed_fee",
+    "description"
+  ],
+  "title": "Profile",
+  "type": "object"
+}

@@ -1,0 +1,14 @@
+[server]
+maxUploadSize = 25
+maxMessageSize = 100
+address = "127.0.0.1"
+enableXsrfProtection = true
+enableCORS = true
+[browser]
+gatherUsageStats = false
+[theme]
+primaryColor = "#167D8D"
+backgroundColor = "#F7FAFC"
+secondaryBackgroundColor = "#E8F0F5"
+textColor = "#173B4F"
+font = "sans serif"

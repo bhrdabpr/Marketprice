@@ -1,0 +1,1 @@
+[{"metric": "Products processed", "value": 3}, {"metric": "Valid products", "value": 2}, {"metric": "Invalid products", "value": 1}, {"metric": "Profit totals", "value": "No aggregate forecast: quantities are inventory, not sales predictions"}]
