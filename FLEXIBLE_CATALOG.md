@@ -1,3 +1,7 @@
+## Version 1.4 cost-confidence change
+
+Absent expenses are now provisional zero, not automatically confirmed inapplicable. Use the UI confirmation or `omitted_costs_confirmed=True` after review. Included blanks remain individual-product errors. See Cost_Confidence and Action_List in the export. Older examples below show numerical defaults; their zero assumptions now require this confirmation.
+
 ## Review columns after upload
 
 Column mapping opens automatically and preserves your original headers. Persian/English names receive editable suggestions with sample values. Unknown names must be mapped or explicitly ignored. For workbooks with both Digikala and Snapp columns, choose the marketplace first; the other marketplace and recognized historical calculations are excluded in the suggested mapping. Review this before calculating.

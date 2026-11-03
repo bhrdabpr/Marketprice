@@ -12,7 +12,7 @@ from marketprice.models import FIXED_FIELDS, Product
 
 
 def calc(rows, **options):
-    return calculate_catalog(rows, currency="IRR", target_margin="10%", **options)
+    return calculate_catalog(rows, currency="IRR", target_margin="10%", omitted_costs_confirmed=True, **options)
 
 
 def test_three_margins_and_break_even_reconciled_independently():
@@ -27,7 +27,7 @@ def test_three_margins_and_break_even_reconciled_independently():
         price = r["recommended_price"]
         assert price * (1 - D(".1") - r["target_margin"]) >= 100
         assert (price - 1) * (1 - D(".1") - r["target_margin"]) < 100
-    assert all(r["action"] == "DECREASE" for r in result["Price_Analysis"])
+    assert all(r["action"] == "KEEP" for r in result["Price_Analysis"])
     assert all(r["break_even"] == 112 for r in result["Price_Analysis"])
 
 
@@ -35,7 +35,7 @@ def test_increase_decrease_keep_without_inventory():
     result = calc(
         [{"purchase_cost": 100, "transaction_tax_rate": "10%", "current_price": p} for p in [100, 200, 125]]
     )
-    assert [r["action"] for r in result["Price_Analysis"]] == ["INCREASE", "DECREASE", "KEEP"]
+    assert [r["action"] for r in result["Price_Analysis"]] == ["INCREASE", "KEEP", "KEEP"]
     assert all("quantity" not in r for r in result["Price_Analysis"])
 
 
@@ -94,7 +94,7 @@ def test_bilingual_fields_and_workbook_scenario_sections():
         events=(("Yalda (یلدا)", D(".05"), D(0)),),
     )
     book = load_workbook(BytesIO(workbook_bytes(result)), data_only=True)
-    assert len(book.sheetnames) == 12
+    assert len(book.sheetnames) == 14
     assert book["Price_Recommendations"].max_row == 4
     assert book["Seasonal_Campaigns"].max_row == 2
     assert book["Price_Analysis"].max_row == 4

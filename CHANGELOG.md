@@ -1,5 +1,17 @@
 # 1.3.0 — Bilingual costs, price decisions and seasonal offers
 
+## 1.4.0 — 2026-11-03
+
+- Retain profitable current prices when a computed floor alone would suggest a reduction; competitor-driven decreases require review.
+- Separate confirmed, confirmed-zero, estimated and missing cost declarations; absent costs yield provisional scenarios until confirmed.
+- Add reusable JSON mappings/settings with header-drift detection and a prioritized source-linked action list.
+- Add normalized transaction, refund, reserve, payout and dated-cost reconciliation, platform contribution and descriptive campaign-period totals.
+- Show required campaign sales multiplier instead of claiming a demand optimum.
+- Add dated seller-reviewed rule bundles and explicit snapshot-bound price approval manifests; no marketplace writes.
+- Prepare an experimental xlwings Excel button bridge using the same pricing engine; native Excel certification remains pending.
+- Preserve per-product catalog errors and literal-text exports; public samples remain synthetic.
+
+
 - Thirteen optional per-unit cost categories, with present blanks still invalid.
 - English labels followed by Persian translations, with bilingual header suggestions.
 - Price_Analysis and Seasonal_Campaigns export sheets; primary plus two additional margin scenarios, per-unit break-even, price movements and configurable seasonal offers.

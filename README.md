@@ -1,4 +1,6 @@
-# MarketPrice 1.3
+# MarketPrice 1.4
+
+**1.4 workflow:** cost confidence, reusable setups, action lists, normalized actual-profit/settlement analysis, dated costs and approval manifests. [Development flow](DEVELOPMENT_FLOW.md) · [Operations guide](OPERATIONS.md) · [Experimental Excel companion](excel/README.md). Native marketplace adapters and the Excel button still require integration certification.
 
 [Bilingual cost and pricing guide](COST_GUIDE.md): expanded optional costs, three margin scenarios, break-even, increase/decrease/keep analysis and configurable Black Friday, Christmas, Nowruz and Yalda offers. All campaign suggestions are constrained by entered costs, margins and discount limits.
 

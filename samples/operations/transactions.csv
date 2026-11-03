@@ -1,0 +1,7 @@
+transaction_id,marketplace,currency,date,kind,amount,order_id,sku,settlement_id,quantity,expected_amount,due_date,payment_type,campaign,phase
+S1,digikala,IRR,2026-10-01,sale,2000,O1,DEMO-1,P1,2,,2026-10-10,credit,Yalda,before
+F1,digikala,IRR,2026-10-01,fee,-200,O1,DEMO-1,P1,0,-180,,,Yalda,before
+P1,digikala,IRR,2026-10-10,payout,1800,,,P1,0,,,,,
+S2,snapp_shop,IRR,2026-10-02,sale,1500,O2,DEMO-1,P2,1,,2026-10-12,cash,Yalda,during
+F2,snapp_shop,IRR,2026-10-02,fee,-150,O2,DEMO-1,P2,0,-150,,,Yalda,during
+P2,snapp_shop,IRR,2026-10-12,payout,1300,,,P2,0,,,,,

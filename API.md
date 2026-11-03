@@ -40,3 +40,10 @@ Adapter implementations must handle authorization, pagination, rate limits, retr
 For Amazon, use the official [SP-API authorization guide](https://developer-docs.amazon.com/sp-api/docs/connecting-to-the-selling-partner-api) and [Listings Items API](https://developer-docs.amazon.com/sp-api/reference/searchlistingsitems). Seller API registration/authorization is required. Listing data alone does not supply your acquisition cost, overhead or complete tax obligations. Fee estimates are price-dependent; do not reuse a single estimate as a universal fee rule.
 
 For Digikala, obtain the current authorized seller API documentation and credentials from the seller panel before implementing an adapter. No undocumented endpoints, scraped seller cookies or assumed official commissions are built in.
+
+
+## Version 1.4 additions
+
+Pricing settings optionally accept `omitted_costs_confirmed` (boolean, default false) and `cost_states` (object: cost field → confirmed / confirmed_zero / estimated / missing). Omitted expenses otherwise produce provisional results with `decision_ready=false`. Flexible pricing exports add `Action_List` and `Cost_Confidence` (14 sections). Existing numeric floors remain comparable; consult the confidence metadata before acting.
+
+`POST /v1/reconcile` uses the same Bearer token and size limits. Body: `{"transactions": [...], "costs": [...], "as_of": "2026-11-01"}`. Schemas are documented in [OPERATIONS.md](OPERATIONS.md). Source-row errors are returned in `Errors`; missing data never produces a confirmed aggregate. No marketplace writes are exposed.

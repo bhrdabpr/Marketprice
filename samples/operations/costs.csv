@@ -1,0 +1,3 @@
+sku,currency,effective_date,historical_unit_cost,replacement_unit_cost,source
+DEMO-1,IRR,2026-09-01,500,550,Synthetic invoice A
+DEMO-1,IRR,2026-10-15,650,700,Synthetic quote B

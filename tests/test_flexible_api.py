@@ -148,3 +148,32 @@ def test_ui_starts_with_flexible_controls():
     assert not app.exception
     assert next(c for c in app.checkbox if c.label.startswith("Flexible catalog")).value
     assert any(t.label.startswith("Target margin") for t in app.text_input)
+
+
+def test_api_accepts_cost_confidence_and_rejects_nonboolean_confirmation():
+    status, body = api_call(
+        {"products": [{"purchase_cost": 100}], "settings": {**SETTINGS, "omitted_costs_confirmed": True}}
+    )
+    assert status == "200 OK" and body["Price_Analysis"][0]["decision_ready"]
+    status, _ = api_call(
+        {"products": [{"purchase_cost": 100}], "settings": {**SETTINGS, "omitted_costs_confirmed": "true"}}
+    )
+    assert status == "400 Bad Request"
+
+
+def test_api_reconciliation_returns_source_errors_without_fabricating_profit():
+    status, body = api_call(
+        {"transactions": [{"bad": "row"}], "costs": [], "as_of": "2026-11-01"}, path="/v1/reconcile"
+    )
+    assert status == "200 OK"
+    assert body["Errors"] and not body["Platform_Comparison"]
+
+
+def test_actual_profit_demo_renders_without_upload_or_exception():
+    app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio[0].set_value("Actual profit (سود واقعی)").run()
+    demo = next(b for b in app.button if b.label == "Try synthetic demo (نمونه آزمایشی)")
+    demo.click().run()
+    assert not app.exception
+    result = app.session_state["operations_result"]
+    assert [r["contribution"] for r in result["Platform_Comparison"]] == [800, 850]

@@ -44,7 +44,7 @@ with sync_playwright() as pw:
     page.get_by_role("tab", name="Errors & warnings").click()
     page.screenshot(path="docs/screenshot-errors.png", full_page=True)
     book = load_workbook("reports/browser_download.xlsx", data_only=True)
-    assert len(book.sheetnames) == 12
+    assert len(book.sheetnames) == 14
     sheet = book["Price_Recommendations"]
     records = list(sheet.values)
     headers = records[0]
@@ -68,4 +68,18 @@ with sync_playwright() as pw:
     }
     Path("reports/browser-e2e.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report, indent=2))
+    page.get_by_text("Actual profit (سود واقعی)", exact=True).click()
+    page.get_by_role("button", name="Try synthetic demo (نمونه آزمایشی)", exact=True).click()
+    actual_download = page.get_by_role("button", name="Download reconciliation evidence", exact=True)
+    actual_download.wait_for(timeout=30000)
+    with page.expect_download() as actual_item:
+        actual_download.click()
+    actual_item.value.save_as("reports/browser_actuals.xlsx")
+    actual_book = load_workbook("reports/browser_actuals.xlsx", data_only=True)
+    actual_rows = list(actual_book["Platform_Comparison"].values)
+    actual_records = [dict(zip(actual_rows[0], r)) for r in actual_rows[1:]]
+    assert [r["contribution"] for r in actual_records] == [800, 850]
+    assert actual_book["Product_Platform"].max_row == 3
+    actual_book.close()
+    print("Actual-profit browser demo and download reconciled: 800 / 850 IRR")
     browser.close()

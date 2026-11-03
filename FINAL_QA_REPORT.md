@@ -1,3 +1,15 @@
+# Version 1.4 verification — 2026-11-03
+
+- 123 automated tests pass, including new cost-confidence, saved-setup, approval, actual-profit, refund/reserve, duplicate, date and currency regressions.
+- Ruff passes; mypy checks 27 source files.
+- Browser minimal catalog: 3 products, 2 valid, 1 isolated missing-tax error; downloaded 14-sheet workbook independently checked, profitable prices retained.
+- Synthetic actuals: contribution 800 / 850 IRR, fee variance 20 IRR, payout variance -50 IRR; app test exercises the actual-profit demo.
+- 10,000 synthetic sale rows reconciled in 0.275 seconds locally (calculation only; not an export or concurrency benchmark).
+- Pure Excel matrix bridge tested; native xlwings button certification is pending.
+- Vendor template/contract certification, official price-upload formats, live API publishing, and causal campaign optimization are not claimed complete.
+
+Historical verification follows.
+
 # Version 1.3 verification
 
 97 local tests passed; Ruff and mypy passed (20 source files). Independent numerical tests reconcile three margin floors, break-even, increase/decrease/keep decisions and margin-constrained seasonal discounts. New optional cost fields are included in the ledger and preserve present-blank product errors. Twelve report sections now include Price_Analysis and Seasonal_Campaigns. The browser workflow verifies three normal margin scenarios and both default seasonal reports. Current hosted results are available under GitHub Actions. Research sources, assumptions and worked examples are in COST_GUIDE.md.

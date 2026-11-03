@@ -3,8 +3,10 @@
 import hmac
 import json
 import os
+from datetime import date
 from wsgiref.simple_server import make_server
 
+from .actuals import reconcile
 from .flexible import calculate_catalog
 from .io import MAX_BYTES, json_default
 
@@ -29,7 +31,7 @@ def create_app(token: str):
         supplied = environ.get("HTTP_AUTHORIZATION", "")
         if not hmac.compare_digest(supplied.encode(), ("Bearer " + token).encode()):
             return respond("401 Unauthorized", {"error": "Bearer token required"})
-        if environ.get("PATH_INFO") != "/v1/calculate":
+        if environ.get("PATH_INFO") not in {"/v1/calculate", "/v1/reconcile"}:
             return respond("404 Not Found", {"error": "Unknown endpoint"})
         if environ.get("REQUEST_METHOD") != "POST":
             return respond("405 Method Not Allowed", {"error": "Use POST"})
@@ -42,6 +44,20 @@ def create_app(token: str):
                 parse_float=str,
                 parse_constant=lambda _: (_ for _ in ()).throw(ValueError("Nonfinite JSON")),
             )
+            if environ.get("PATH_INFO") == "/v1/reconcile":
+                if not isinstance(payload, dict) or set(payload) != {"transactions", "costs", "as_of"}:
+                    raise ValueError("Expected transactions, costs and as_of")
+                if not all(
+                    isinstance(payload[k], list) and all(isinstance(r, dict) for r in payload[k])
+                    for k in ("transactions", "costs")
+                ):
+                    raise ValueError("Expected arrays of records")
+                return respond(
+                    "200 OK",
+                    reconcile(
+                        payload["transactions"], payload["costs"], as_of=date.fromisoformat(payload["as_of"])
+                    ),
+                )
             if not isinstance(payload, dict) or set(payload) - {"products", "settings"}:
                 raise ValueError("Expected products and settings")
             settings = payload.get("settings", {})
@@ -50,11 +66,26 @@ def create_app(token: str):
                 "target_margin",
                 "marketplace",
                 "locale",
+                "omitted_costs_confirmed",
+                "cost_states",
             }:
                 raise ValueError("Unknown settings")
             if not isinstance(payload.get("products"), list):
                 raise TypeError("products must be an array")
-            if not all(isinstance(v, str) for v in settings.values()):
+            if "omitted_costs_confirmed" in settings and not isinstance(
+                settings["omitted_costs_confirmed"], bool
+            ):
+                raise ValueError("Cost confirmation must be boolean")
+            if "cost_states" in settings and (
+                not isinstance(settings["cost_states"], dict)
+                or not all(isinstance(v, str) for v in settings["cost_states"].values())
+            ):
+                raise ValueError("Invalid cost states")
+            if not all(
+                isinstance(v, str)
+                for k, v in settings.items()
+                if k not in {"omitted_costs_confirmed", "cost_states"}
+            ):
                 raise ValueError("Settings must be strings")
             if not {"currency", "target_margin"} <= settings.keys():
                 raise ValueError("currency and target_margin settings are required")

@@ -1,3 +1,14 @@
+# Current integration boundaries (1.4)
+
+- Actual-profit inputs use the documented normalized schema, not certified Digikala/Amazon native exports.
+- Fee evidence is seller-declared; caps, minimum fees, refund-specific fee rules and per-fee settlement rounding remain unsupported.
+- Excel companion is experimental and not yet tested as a native button.
+- Campaign comparisons are descriptive; there is no causal demand or optimal-price model.
+- Approved manifests are not vendor upload files; live marketplace publishing is absent.
+- Public hosting, multi-tenant isolation and background job infrastructure are not delivered.
+
+The historical notes below describe earlier versions and may be superseded by [DEVELOPMENT_FLOW.md](DEVELOPMENT_FLOW.md).
+
 ## Version 1.2 additions
 
 Flexible mode requires explicit file currency and margin settings; absent cost columns are treated as inapplicable under the displayed policy. Present blanks remain errors. Supported fee semantics are documented in FLEXIBLE_CATALOG.md; arbitrary new fee formulas still require implementation. The API is localhost-only and uses a development WSGI server. Marketplace adapters are a tested extension contract, not live Amazon/Digikala connections.

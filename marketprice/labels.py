@@ -52,7 +52,7 @@ PERSIAN = {
     "currency_conversion": "کارمزد تبدیل ارز",
     "compliance": "مجوز و انطباق تخصیص یافته",
     "break_even": "قیمت سر به سر",
-    "recommended_price": "قیمت پیشنهادی",
+    "recommended_price": "قیمت سناریو (نه پیش بینی بازار)",
     "margin": "حاشیه سود",
     "profit": "سود هر واحد",
     "price_change": "تغییر قیمت",
@@ -62,12 +62,27 @@ PERSIAN = {
     "campaign_price": "قیمت کمپین",
     "suggested_discount": "تخفیف پیشنهادی",
     "status": "وضعیت",
-    "actual_margin": "حاشیه سود واقعی",
+    "actual_margin": "حاشیه سود محاسبه شده",
     "normal_price": "قیمت فروش عادی",
     "campaign_cost": "هزینه اضافی کمپین",
+    "margin_floor": "کف قیمت حاشیه سود",
+    "cost_confidence": "وضعیت اطمینان هزینه",
+    "decision_ready": "ورودی هزینه تأیید شده",
+    "required_sales_multiplier": "ضریب فروش لازم برای حفظ سود",
+    "baseline_unit_profit": "سود پایه هر واحد",
+    "priority": "اولویت",
+    "impact": "اثر مالی",
+    "evidence": "مدرک",
+    "missing_costs": "هزینه های نامشخص",
+    "estimated_costs": "هزینه های تخمینی",
+    "confirmed_zero_costs": "هزینه های صفر تأیید شده",
 }
 
 
 def label(field: str) -> str:
+    if field == "recommended_price":
+        return "Scenario price (قیمت سناریو، نه پیش بینی بازار)"
+    if field == "actual_margin":
+        return "Calculated margin (حاشیه سود محاسبه شده)"
     english = field.replace("_", " ").capitalize()
     return f"{english} ({PERSIAN[field]})" if field in PERSIAN else english

@@ -4,6 +4,7 @@ from dataclasses import fields
 from decimal import Decimal
 
 from .batch import COST_FIELDS, process
+from .confidence import apply_confidence
 from .engine import Ledger
 from .io import MAX_ROWS
 from .models import CURRENCIES, Product
@@ -19,9 +20,11 @@ def calculate_catalog(
     target_margin: str,
     marketplace: str = "generic",
     locale: str = "en",
+    cost_states: dict[str, str] | None = None,
+    omitted_costs_confirmed: bool = False,
     **options,
 ) -> dict[str, list[dict]]:
-    """Absent cost columns are declared inapplicable; included columns require every row.
+    """Absent costs are provisional zero until confirmed; included columns require every row.
 
     Currency and objective are explicit file-level settings. Row values override them.
     No current price means a floor only, with no invented campaign or current profit.
@@ -113,8 +116,8 @@ def calculate_catalog(
             "value": {
                 "absent_column_defaults": {k: v for k, v in defaults.items() if k not in columns},
                 "generated_identity": "sku" not in columns,
-                "policy": "Absent costs declared inapplicable. Present blank or missing cells invalidate only that product. Rates are fractions or percent text. No exchange-rate conversion.",
+                "policy": "Absent costs are provisional unless confirmed in Cost_Confidence. Present blank or missing cells invalidate only that product. Rates are fractions or percent text. No exchange-rate conversion.",
             },
         }
     )
-    return result
+    return apply_confidence(result, rows, cost_states, omitted_confirmed=omitted_costs_confirmed, locale=locale)

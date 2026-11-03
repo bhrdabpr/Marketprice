@@ -11,19 +11,31 @@ from .precision import financial
 @financial
 def price_analysis(p: Product, rule: Profile, recommendation: dict) -> dict:
     price = recommendation["recommended_price"]
+    # A computed floor is not evidence that a profitable price should be reduced.
+    floor = recommendation["floor"]
+    current = evaluate(p, rule, p.current_price)
+    if (
+        p.recommendation_rule == "floor"
+        and p.current_price >= price
+        and current.margin is not None
+        and current.margin >= recommendation["target_margin"]
+        and (p.price_ceiling is None or p.current_price <= p.price_ceiling)
+    ):
+        price = p.current_price
     difference = price - p.current_price
     ledger = evaluate(p, rule, price)
-    action = "KEEP" if difference == 0 else ("INCREASE" if difference > 0 else "DECREASE")
+    action = "KEEP" if difference == 0 else ("INCREASE" if difference > 0 else "REVIEW_DECREASE")
     return {
         "currency": p.currency,
         "target_margin": recommendation["target_margin"],
         "current_price": p.current_price,
         "normal_price": price,
+        "margin_floor": floor,
         "price_change": difference,
         "actual_margin": ledger.margin,
         "profit": ledger.profit,
         "action": action,
-        "reason": "Configured objective and verified cost floor; no demand or sales-volume prediction.",
+        "reason": "Cost floor only: retain a price meeting the objective; review any competitor-driven reduction. Costs and fee rules require confirmation; no demand prediction.",
     }
 
 
@@ -71,4 +83,11 @@ def seasonal_offers(
         "profit": offer["profit"],
         "actual_margin": offer["margin"],
         "platform_share": platform_share,
+        "baseline_unit_profit": evaluate(p, rule, p.current_price).profit,
+        "required_sales_multiplier": (
+            max(Decimal(0), evaluate(p, rule, p.current_price).profit) / offer["profit"]
+            if offer["profit"] > 0
+            else None
+        ),
+        "volume_note": "Units required to preserve baseline contribution; not predicted demand. Excludes campaign-wide fixed spend.",
     }
