@@ -1,4 +1,13 @@
-# 1.3.0 — Bilingual costs, price decisions and seasonal offers
+# MarketPrice release history
+
+## 1.6.0 — 2026-11-03
+
+- Simplify the main pricing journey; group specialist tools and advanced promotion settings.
+- Add a plain-language per-product decision and compact price/promotion tables.
+- Show results before preparing the complete Excel report on request; underlying export throughput is unchanged.
+- Add explicit UTF-16, Windows-1256 and Windows-1252 CSV decoding alongside UTF-8; no guessing.
+- Add a reproducible synthetic mixed-unit case study with independent arithmetic checks and a demo script.
+- Correct current report counts and document integration/acceptance boundaries.
 
 ## 1.5.0 — 2026-11-03
 

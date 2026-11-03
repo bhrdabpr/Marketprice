@@ -1,4 +1,4 @@
-# Current integration boundaries (1.4)
+# Current integration boundaries (1.6)
 
 - Actual-profit inputs use the documented normalized schema, not certified Digikala/Amazon native exports.
 - Fee evidence is seller-declared; caps, minimum fees, refund-specific fee rules and per-fee settlement rounding remain unsupported.
@@ -26,7 +26,7 @@ No critical calculation defect is currently known **within the documented model*
 - Profile editing requires JSON; the UI selects profiles but does not provide a visual rule editor. Category campaigns may use separate profile IDs. Baseline financial inputs are conservatively required even if a profile ignores a fallback field.
 - Price floors are bounded at 1e18; prices are positive grid points. No profit-maximizing market model, live competitor ingestion or marketplace write-back exists.
 - UI previews show at most 1,000 records. Inputs are capped at 25 MiB/100,000 rows/80 columns; large files should use CLI and adequately provisioned memory. The 100,000-row benchmark measures one batch, not multi-user hosting.
-- No authentication/tenancy, durable job queue, hosted monitoring or production penetration test. External deployment needs a secured access boundary.
+- Local single-user application: no authentication/tenancy, durable job queue, hosted monitoring or production penetration test. The development API is localhost-only. External deployment needs a secured access boundary.
 - Docker, fresh Windows/Linux installation, native double-click OS integration and native Excel rendering were not verified here. GitHub Actions passed on Linux for published commit 7719a599e94e2ee21853d9bbff038f5292085e2b. Source is published at https://github.com/bhrdabpr/Marketprice. No public application service exists.
 - Development and runtime versions are pinned; lock files are not wheel-hash manifests. Dependency scan results are time-specific.
 

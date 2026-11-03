@@ -32,6 +32,7 @@ with sync_playwright() as pw:
         "checkbox", name="I reviewed the column meanings, ignored columns and units"
     ).is_checked()
     page.get_by_role("button", name="Validate and calculate", exact=True).click(timeout=30000)
+    page.get_by_role("button", name="Prepare complete Excel report", exact=True).click()
     download_button = page.get_by_role("button", name="Download results workbook", exact=True)
     download_button.wait_for(timeout=30000)
     with page.expect_download() as item:
@@ -68,13 +69,14 @@ with sync_playwright() as pw:
     }
     Path("reports/browser-e2e.json").write_text(json.dumps(report, indent=2))
     print(json.dumps(report, indent=2))
-    page.get_by_role("radio", name="Only invalid products", exact=True).click()
+    page.get_by_text("Only invalid products", exact=True).click()
     assert page.get_by_role("radio", name="Only invalid products", exact=True).is_checked()
-    page.get_by_role("radio", name="فارسی", exact=True).click()
-    page.get_by_role("radio", name="فقط کالاهای معتبر", exact=True).click()
+    page.get_by_text("فارسی", exact=True).click()
+    page.get_by_text("فقط کالاهای معتبر", exact=True).click()
     assert page.get_by_role("radio", name="فقط کالاهای معتبر", exact=True).is_checked()
     assert page.locator('[data-testid="stMain"]').evaluate("el => getComputedStyle(el).direction") == "rtl"
-    page.get_by_role("radio", name="English", exact=True).click()
+    page.get_by_text("English", exact=True).click()
+    page.get_by_text("Specialist tools", exact=True).click()
     page.get_by_text("Actual profit", exact=True).click()
     page.get_by_role("button", name="Try synthetic demo", exact=True).click()
     actual_download = page.get_by_role("button", name="Download reconciliation evidence", exact=True)

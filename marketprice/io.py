@@ -20,14 +20,21 @@ MAX_COLS = 80
 
 
 def read_upload(
-    content: bytes, filename: str, mapping: dict | None = None, *, preserve_headers: bool = False
+    content: bytes,
+    filename: str,
+    mapping: dict | None = None,
+    *,
+    preserve_headers: bool = False,
+    encoding: str = "utf-8-sig",
 ) -> list[dict]:
     if len(content) > MAX_BYTES:
         raise ValueError("FILE_TOO_LARGE: maximum 25 MiB")
     suffix = Path(filename).suffix.lower()
     try:
         if suffix == ".csv":
-            source = csv.reader(io.StringIO(content.decode("utf-8-sig")))
+            if encoding not in {"utf-8-sig", "utf-16", "cp1256", "cp1252"}:
+                raise ValueError("UNSUPPORTED_ENCODING")
+            source = csv.reader(io.StringIO(content.decode(encoding)))
             return _rows(source, mapping, preserve_headers)
         if suffix != ".xlsx":
             raise ValueError("UNSUPPORTED_FILE: use .csv or .xlsx")

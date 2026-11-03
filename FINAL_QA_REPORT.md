@@ -1,3 +1,17 @@
+# Version 1.6 verification — 2026-11-03
+
+- 134 automated tests pass; Ruff passes; mypy checks 30 source files.
+- Local browser: synthetic CSV uploaded, explicit selling-price TOMAN → IRR mapping reviewed, 2 valid / 1 missing-commission product retained.
+- Calculation results appear before complete Excel preparation. Downloaded 14-sheet workbook independently checked for statuses, 190000 IRR contribution, 1262500 IRR break-even and 1442858 / 1553847 / 1836364 IRR margin floors.
+- Persian interface and plain-language product decisions visually inspected; business settings persist through language change.
+- Explicit encoding tests cover UTF-8 BOM, UTF-16, Windows-1256 and rejection of unsupported/default-mismatched encodings. No silent guessing.
+- Private source workbook reprocessed locally for both marketplace mappings; evidence remains outside the public repository.
+- Export throughput has not been improved or re-benchmarked. No manual-time-saving claim, independent audit, native Excel certification or fresh OS/Docker acceptance is made.
+- Final screenshot public uploads are pending approval; captured images remain local.
+- Three-minute demonstration script prepared in CASE_STUDY.md; recording and genuine seller/accountant acceptance remain pending.
+
+Historical verification follows; old version numbers below describe previous releases.
+
 # Version 1.5 verification — 2026-11-03
 
 - 130 automated tests pass; Ruff and mypy (30 source files) pass.

@@ -3,6 +3,21 @@
 import re
 
 FA = {
+    "Margin distribution": "نمودار توزیع حاشیه سود",
+    "Specialist tools": "ابزارهای تخصصی",
+    "Advanced calculation mode": "روش محاسبه پیشرفته",
+    "Current price meets target": "قیمت فعلی حاشیه سود هدف را دارد",
+    "Raise for your target margin": "برای رسیدن به سود هدف، قیمت را افزایش دهید",
+    "Set a price using your target margin": "قیمت را بر اساس حاشیه سود هدف تعیین کنید",
+    "Review a possible reduction": "کاهش احتمالی قیمت را بررسی کنید",
+    "Missing information": "اطلاعات ناقص است",
+    "Confirm costs before deciding": "پیش از تصمیم‌گیری، هزینه‌ها را تأیید کنید",
+    "Review inputs": "ورودی‌ها را بررسی کنید",
+    "Additional campaign analysis": "تحلیل تکمیلی کمپین‌ها",
+    "Advanced promotion settings": "تنظیمات پیشرفته تخفیف",
+    "File options": "تنظیمات فایل",
+    "CSV encoding": "کدگذاری فایل CSV",
+    "Prepare complete Excel report": "آماده‌سازی گزارش کامل Excel",
     "No actions needed for the selected products.": "برای کالاهای انتخاب‌شده موردی نیازمند اقدام نیست.",
     "Know your price floor. Test your campaign. Keep the calculation trail.": "قیمت مناسب را حساب کنید، سودتان را ببینید و با اطمینان تصمیم بگیرید.",
     "Example marketplace profiles • Enter your own verified fees and tax rules • All calculations run on this server": "انتخاب بازار فقط به شناخت ستون‌ها کمک می‌کند؛ کارمزد و مالیات قرارداد خودتان را وارد کنید.",

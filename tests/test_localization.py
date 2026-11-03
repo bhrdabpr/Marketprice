@@ -41,6 +41,8 @@ def test_localized_preview_preserves_underlying_financial_data_and_order():
     assert table["وضعیت"].tolist() == ["معتبر", "نیازمند اصلاح"]
     assert table.columns[-1] == "شناسه کالا"
     assert rows == original
+    english = preview(rows, language="en")
+    assert english["Status"].tolist() == ["VALID", "INVALID"]
 
 
 def test_filters_follow_row_identity_across_all_sections_not_duplicate_sku():

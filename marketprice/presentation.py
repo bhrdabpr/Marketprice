@@ -68,6 +68,7 @@ MONEY_FIELDS = set(FIXED_FIELDS) | {
     "fee_tax_credit",
 }
 EXTRA_LABELS = {
+    "decision": "اقدام پیشنهادی",
     "row": "ردیف فایل",
     "problem": "ستون‌های نیازمند اصلاح",
     "source_row": "ردیف منبع",
@@ -241,7 +242,7 @@ def display_value(
         return "، ".join(
             str(display_value(field, v, language=language, persian_digits=persian_digits)) for v in value
         )
-    return translate(VALUES.get(str(value), str(value)), language)
+    return translate(VALUES.get(str(value), str(value)) if language == "fa" else str(value), language)
 
 
 def preview(records, *, language="en", display_currency="original", persian_digits=False):

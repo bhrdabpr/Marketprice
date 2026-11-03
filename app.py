@@ -92,6 +92,10 @@ st.markdown(
 st.markdown(
     """<style>
 .stApp {background:#f1f2f4;color:#111111;}
+[data-testid="stMainBlockContainer"] {max-width:1480px;padding-top:2.5rem;padding-bottom:4rem;}
+h1 {letter-spacing:-0.04em;}
+[data-testid="stExpander"] {border-radius:12px;background:#ffffff66;}
+[data-testid="stMetric"] {padding:16px;border-radius:12px;background:#ffffff;}
 [data-testid="stSidebar"] {background:#e5e7eb;}
 .stButton, .stDownloadButton {display:flex;justify-content:center;}
 .stButton button, .stDownloadButton button {background:#2563eb;color:#ffffff;border:0;border-radius:8px;min-height:44px;}
@@ -107,13 +111,14 @@ st.info(
         "Example marketplace profiles • Enter your own verified fees and tax rules • All calculations run on this server"
     )
 )
-workspace = st.radio(
-    t("Workspace (بخش برنامه)"),
-    ["Pricing (قیمت گذاری)", "Actual profit (سود واقعی)"],
-    horizontal=True,
-    format_func=t,
-    key="workspace",
-)
+with st.expander(t("Specialist tools")):
+    workspace = st.radio(
+        t("Workspace (بخش برنامه)"),
+        ["Pricing (قیمت گذاری)", "Actual profit (سود واقعی)"],
+        horizontal=True,
+        format_func=t,
+        key="workspace",
+    )
 if workspace == "Actual profit (سود واقعی)":
     render_operations(language, display_currency, persian_digits)
     st.stop()
@@ -128,7 +133,10 @@ if selected == "custom":
     st.text_input(t("Your store name (optional)"), key="store_name")
 with st.sidebar:
     st.header(t("Calculation settings"))
-    flexible = st.checkbox(t("Flexible catalog (review cost confidence)"), value=True, key="flexible_mode")
+    with st.expander(t("Advanced calculation mode")):
+        flexible = st.checkbox(
+            t("Flexible catalog (review cost confidence)"), value=True, key="flexible_mode"
+        )
     currency = select_localized(
         t("Currency for files without a currency column"),
         list(CURRENCIES),
@@ -149,15 +157,16 @@ with st.sidebar:
         t("Additional margin scenarios (semicolon separated)"), "15%; 25%", key="extra_margins"
     )
     discount_text = st.text_input(
-        t("Campaign discounts (semicolon separated)"), "5%; 10%; 15%; 20%", key="campaign_discounts"
+        t("Campaign discounts (semicolon separated)"), "10%", key="campaign_discounts"
     )
     kind = select_localized(t("Discount type"), ["percent", "fixed"], format_func=t, key="discount_kind")
-    share = st.text_input(t("Platform-funded share"), "0%", key="platform_share")
-    override = st.checkbox(
-        t("Explicitly allow unsafe campaign simulations (still labeled unsafe)"),
-        value=False,
-        key="allow_unsafe",
-    )
+    with st.expander(t("Advanced promotion settings")):
+        share = st.text_input(t("Platform-funded share"), "0%", key="platform_share")
+        override = st.checkbox(
+            t("Explicitly allow unsafe campaign simulations (still labeled unsafe)"),
+            value=False,
+            key="allow_unsafe",
+        )
     with st.expander(t("Seasonal offers (پیشنهادهای مناسبتی)")):
         event_names = st.multiselect(
             t("Events (مناسبت ها)"),
@@ -197,17 +206,15 @@ st.caption(
         "25 MiB / 100,000 rows maximum. Required blanks cause errors; enter 0 only when confirmed. Samples include one intentional error."
     )
 )
+with st.expander(t("File options")):
+    csv_encoding = st.selectbox(
+        t("CSV encoding"), ["utf-8-sig", "utf-16", "cp1256", "cp1252"], key="csv_encoding"
+    )
 if upload is not None:
     try:
         raw_bytes = upload.getvalue()
-        initial = read_upload(raw_bytes, upload.name, preserve_headers=True)
+        initial = read_upload(raw_bytes, upload.name, preserve_headers=True, encoding=csv_encoding)
         source_market = selected
-        if source_market:
-            st.info(
-                t(
-                    "This file contains marketplace-specific columns. Only the selected marketplace's selling price, commission and shipping are used. Previous calculated prices and status columns are excluded; review the mapping below."
-                )
-            )
         setup_file = st.file_uploader(t("Reuse saved setup (.json)"), type=["json"], key="setup")
         setup = load_setup(setup_file.getvalue(), list(initial[0])) if setup_file else None
         if setup:
@@ -437,9 +444,16 @@ if upload is not None:
             )
         )
         st.dataframe(
-            preview([{**r, "currency": r.get("currency", currency)} for r in mapped[:30]]), hide_index=True
+            localized_preview(
+                [{**r, "currency": r.get("currency", currency)} for r in mapped[:30]],
+                language=language,
+                display_currency="original",
+                persian_digits=persian_digits,
+            ),
+            hide_index=True,
         )
         settings = (
+            csv_encoding,
             flexible,
             currency,
             target,
@@ -514,8 +528,6 @@ if upload is not None:
                     },
                 }
             )
-            with st.spinner(t("Preparing audited workbook…")):
-                st.session_state["download"] = workbook_bytes(result)
             st.session_state["result"] = result
             st.session_state["fingerprint"] = fingerprint
             bar.progress(1.0, text=t("Complete — results ready"))
@@ -540,14 +552,18 @@ if upload is not None:
                 if persian_digits
                 else len(eligible),
             )
-            st.columns([1, 2, 1])[1].download_button(
-                t("Download results workbook"),
-                st.session_state["download"],
-                "marketprice_results.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                on_click="ignore",
-                type="primary",
-            )
+            if st.button(t("Prepare complete Excel report"), key="prepare_report"):
+                with st.spinner(t("Preparing audited workbook…")):
+                    st.session_state["download"] = workbook_bytes(result)
+            if "download" in st.session_state:
+                st.columns([1, 2, 1])[1].download_button(
+                    t("Download results workbook"),
+                    st.session_state["download"],
+                    "marketprice_results.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    on_click="ignore",
+                    type="primary",
+                )
             provisional = sum(
                 r["cost_confidence"] != "CONFIRMED_INPUTS" for r in result.get("Cost_Confidence", [])
             )
@@ -572,17 +588,7 @@ if upload is not None:
                 key="product_filter",
             )
             visible_result = filter_results(result, filter_choice or "all")
-            st.subheader(t("Action list (اقدامات پیشنهادی)"))
             actions = visible_result.get("Action_List", [])[:1000]
-            if actions:
-                st.dataframe(preview(actions), hide_index=True)
-            else:
-                st.success(t("No actions needed for the selected products."))
-            st.caption(
-                t(
-                    "Missing costs block actionable advice. Confirmed inputs still require checking your actual seller fee contract. Impacts are per unit and grouped by currency."
-                )
-            )
             tabs = st.tabs(
                 [t(x) for x in ["Products", "Recommendations", "Campaigns", "Errors & warnings", "Audit"]]
             )
@@ -595,6 +601,15 @@ if upload is not None:
                         problems: dict[int, list[str]] = {}
                         for error in result["Errors"]:
                             problems.setdefault(error["row"], []).append(label(error["field"]))
+                        decisions: dict[int, dict] = {}
+                        for decision in visible_result["Price_Analysis"]:
+                            decisions.setdefault(decision["row"], decision)
+                        decision_labels = {
+                            "KEEP": "Current price meets target",
+                            "INCREASE": "Raise for your target margin",
+                            "SET_PRICE": "Set a price using your target margin",
+                            "REVIEW_DECREASE": "Review a possible reduction",
+                        }
                         records = [
                             {
                                 **{
@@ -610,13 +625,57 @@ if upload is not None:
                                         "margin",
                                     )
                                 },
+                                "decision": t(
+                                    "Missing information"
+                                    if row["status"] != "VALID"
+                                    else "Confirm costs before deciding"
+                                    if not decisions.get(row["row"], {}).get("decision_ready")
+                                    else decision_labels.get(
+                                        str(decisions.get(row["row"], {}).get("action", "")), "Review inputs"
+                                    )
+                                ),
                                 "problem": "، ".join(dict.fromkeys(problems.get(row["row"], []))) or None,
                             }
                             for row in records
                         ]
+                    if sheet == "Product_Calculations":
+                        records = [{"sku": r["sku"], "decision": r["decision"], **r} for r in records]
+                    if sheet == "Price_Recommendations":
+                        records = [
+                            {
+                                k: r.get(k)
+                                for k in (
+                                    "sku",
+                                    "currency",
+                                    "target_margin",
+                                    "floor",
+                                    "recommended_price",
+                                    "decision_ready",
+                                )
+                            }
+                            for r in records
+                        ]
+                    elif sheet == "Campaign_Simulations":
+                        records = [
+                            {
+                                k: r.get(k)
+                                for k in (
+                                    "sku",
+                                    "currency",
+                                    "requested_discount",
+                                    "discount_kind",
+                                    "campaign_price",
+                                    "profit",
+                                    "margin",
+                                    "safe",
+                                    "decision_ready",
+                                )
+                            }
+                            for r in records
+                        ]
                     st.dataframe(preview(records), hide_index=True)
                     st.caption(t("Preview limited to 1,000 records. Download includes every input row."))
-            with tabs[0]:
+            with tabs[0], st.expander(t("Margin distribution")):
                 values = [
                     float(r["margin"])
                     for r in visible_result["Product_Calculations"]
@@ -639,26 +698,28 @@ if upload is not None:
             with tabs[3]:
                 st.dataframe(preview(visible_result["Errors"]), hide_index=True)
                 st.dataframe(preview(visible_result["Warnings"]), hide_index=True)
-            st.subheader(t("Price analysis (تحلیل قیمت)"))
-            st.caption(
-                t(
-                    "Compare your selected margins: Increase / افزایش, Review decrease / بررسی کاهش, Keep / حفظ قیمت. A floor alone never justifies cutting a profitable price. A higher unit margin does not prove higher total profit; demand is not estimated."
+            with tabs[1]:
+                st.subheader(t("Price analysis (تحلیل قیمت)"))
+                st.caption(
+                    t(
+                        "Compare your selected margins: Increase / افزایش, Review decrease / بررسی کاهش, Keep / حفظ قیمت. A floor alone never justifies cutting a profitable price. A higher unit margin does not prove higher total profit; demand is not estimated."
+                    )
                 )
-            )
-            st.dataframe(
-                preview(visible_result["Price_Analysis"][:1000]),
-                hide_index=True,
-            )
-            st.subheader(t("Seasonal campaign offers (پیشنهاد کمپین مناسبتی)"))
-            st.caption(
-                t(
-                    "SAFE describes mathematical feasibility only; check cost_confidence and decision_ready before acting. Required sales multiplier shows how many units would preserve baseline contribution, not a demand forecast. NO_SAFE_OFFER means no permitted discount meets them. Percentages shown here are rounded for display. Exact values and every product are in the export."
+                st.dataframe(
+                    preview(visible_result["Price_Analysis"][:1000]),
+                    hide_index=True,
                 )
-            )
-            st.dataframe(
-                preview(visible_result["Seasonal_Campaigns"][:1000]),
-                hide_index=True,
-            )
+            with st.expander(t("Additional campaign analysis")):
+                st.subheader(t("Seasonal campaign offers (پیشنهاد کمپین مناسبتی)"))
+                st.caption(
+                    t(
+                        "SAFE describes mathematical feasibility only; check cost_confidence and decision_ready before acting. Required sales multiplier shows how many units would preserve baseline contribution, not a demand forecast. NO_SAFE_OFFER means no permitted discount meets them. Percentages shown here are rounded for display. Exact values and every product are in the export."
+                    )
+                )
+                st.dataframe(
+                    preview(visible_result["Seasonal_Campaigns"][:1000]),
+                    hide_index=True,
+                )
             with st.expander(t("Review price changes (تأیید تغییر قیمت)")):
                 candidates = {
                     (r["row"], str(r["target_margin"])): r
@@ -692,6 +753,8 @@ if upload is not None:
                         )
                     )
             with tabs[4]:
+                if actions:
+                    st.dataframe(preview(actions), hide_index=True)
                 st.json(result["Assumptions"])
                 st.caption(
                     t(

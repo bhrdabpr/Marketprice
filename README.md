@@ -1,6 +1,8 @@
-# MarketPrice 1.5
+# MarketPrice 1.6
 
-**1.5 interface:** choose Persian or English, display rial/toman without changing calculations, filter valid/invalid products, and map only the chosen sales channel’s columns. [راهنمای فارسی](UI_GUIDE.fa.md).
+Calculation results now appear before complete Excel export is prepared. Choose **Prepare complete Excel report** when needed; large exports can still take time.
+
+**Interface:** choose Persian or English, display rial/toman without changing calculations, filter valid/invalid products, and map only the chosen sales channel’s columns. [راهنمای فارسی](UI_GUIDE.fa.md).
 
 **1.4 workflow:** cost confidence, reusable setups, action lists, normalized actual-profit/settlement analysis, dated costs and approval manifests. [Development flow](DEVELOPMENT_FLOW.md) · [Operations guide](OPERATIONS.md) · [Experimental Excel companion](excel/README.md). Native marketplace adapters and the Excel button still require integration certification.
 
@@ -20,7 +22,7 @@ MarketPrice is a local-first marketplace contribution calculator for CSV and Exc
 
 This release has tested financial models and an end-to-end browser workflow. It is **not a universal tax engine or an officially certified marketplace settlement calculator**. Review [model limits](KNOWN_LIMITATIONS.md), [financial methodology](FINANCIAL_METHODOLOGY.md), and [actual QA evidence](FINAL_QA_REPORT.md) before operational use. Bundled marketplace profiles are examples, not official fee schedules. No public deployment is claimed.
 
-![Actual application results](docs/screenshot-results.png)
+Final English/Persian screenshots are captured locally; their public upload is pending approval.
 
 ## Run locally
 
@@ -36,14 +38,16 @@ python3 -m venv .venv
 
 Windows manual commands use `.venv\Scripts\python.exe`. If installation fails, inspect the terminal error; the launcher does not silently continue. The macOS launcher execution was tested with an existing isolated environment; fresh dependency bootstrap and native double-click behavior on every OS are not claimed tested.
 
+[Reproducible synthetic case study](CASE_STUDY.md) · [Completion checklist](FINISH_CHECKLIST.md)
+
 ## Use it
 
 1. Download the sample template or open `samples/sample_input.xlsx`.
 2. Replace example values with verified per-product costs and rates. Enter `0` explicitly for confirmed no-cost items; blanks remain unknown. Store SKU identifiers as text.
-3. Upload `.xlsx` or UTF-8 `.csv`. Choose a number locale and map columns if needed.
-4. For a workbook with fewer cost types, enable **Configure applicable costs for this workbook** and select its applicable costs. Absent unselected cost columns are explicitly treated as inapplicable; blanks in present columns still cause individual product errors. Purchase cost and tax configuration remain required.
-5. Select extra margin scenarios and campaign funding. Click **Validate and calculate**.
-6. Review errors and warnings, then download all twelve result sheets.
+3. Upload `.xlsx` or `.csv` (UTF-8 by default; explicit UTF-16, Windows-1256 and Windows-1252 options are available). Choose a number locale and map columns if needed.
+4. Review column meanings, units and which costs apply. Missing cost categories remain provisional until confirmed inapplicable or included elsewhere. A blank in a mapped cost column invalidates only that product.
+5. Set the primary margin, two additional margin scenarios and one promotion discount. Specialist funding options are under Advanced promotion settings. Click **Validate and calculate**.
+6. Review errors and warnings, then prepare and download the complete report (14 pricing sections).
 
 The sample intentionally includes one missing-shipping row. A successful sample run gives two valid products, one invalid product, and **117.65 USD** for the golden 20% target. This is an example, not a recommended price for real merchandise.
 
