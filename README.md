@@ -1,4 +1,6 @@
-# MarketPrice 1.4
+# MarketPrice 1.5
+
+**1.5 interface:** choose Persian or English, display rial/toman without changing calculations, filter valid/invalid products, and map only the chosen sales channel’s columns. [راهنمای فارسی](UI_GUIDE.fa.md).
 
 **1.4 workflow:** cost confidence, reusable setups, action lists, normalized actual-profit/settlement analysis, dated costs and approval manifests. [Development flow](DEVELOPMENT_FLOW.md) · [Operations guide](OPERATIONS.md) · [Experimental Excel companion](excel/README.md). Native marketplace adapters and the Excel button still require integration certification.
 

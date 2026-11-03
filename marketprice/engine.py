@@ -10,7 +10,7 @@ from .precision import financial
 D = Decimal
 ZERO = D(0)
 MAX_PRICE = D("1e18")
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 
 class CalculationError(ValueError):

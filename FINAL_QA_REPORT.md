@@ -1,3 +1,10 @@
+# Version 1.5 verification — 2026-11-03
+
+- 130 automated tests pass; Ruff and mypy (30 source files) pass.
+- Persian synthetic multi-market catalog: Digikala produces two valid products and one isolated missing-commission error.
+- Browser checks cover Persian result filters and rial-to-toman display; numeric exports remain unchanged.
+- Channel selection scopes mapping suggestions, not live marketplace connections or verified seller contracts.
+
 # Version 1.4 verification — 2026-11-03
 
 - 123 automated tests pass, including new cost-confidence, saved-setup, approval, actual-profit, refund/reserve, duplicate, date and currency regressions.

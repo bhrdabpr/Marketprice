@@ -134,5 +134,22 @@
     "campaign_fixed_fee": "0",
     "required_fields": [],
     "description": "Explicit row-level costs, rates, currency and tax treatment. Seller-paid shipping entered per row. Progressive tiers may be configured. No platform defaults inferred."
+  },
+  {
+    "id": "tapsi_shop",
+    "version": "example-1",
+    "effective_date": "2026-11-02",
+    "source": "User-configured example; no official marketplace schedule",
+    "official": false,
+    "commission_base": "net",
+    "payment_base": "gross",
+    "other_base": "net",
+    "subsidy_taxable": true,
+    "tiers": [],
+    "category_tiers": {},
+    "campaign_commission_rate": null,
+    "campaign_fixed_fee": "0",
+    "required_fields": [],
+    "description": "Explicit row-level costs, rates, currency and tax treatment. Seller-paid shipping entered per row. Progressive tiers may be configured. No platform defaults inferred."
   }
 ]

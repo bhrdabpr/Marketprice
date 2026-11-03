@@ -77,6 +77,38 @@ OUTPUT_COLUMNS = {
 }
 
 
+TOKENS = {
+    "digikala": ("digikala", "دیجی کالا", "دیجی‌کالا", "دیجی"),
+    "snapp_shop": ("snapp shop", "snapp", "اسنپ شاپ", "اسنپ"),
+    "tapsi_shop": ("tapsi shop", "tapsi", "تپسی شاپ", "تپسی"),
+    "amazon": ("amazon", "آمازون", "امازون"),
+    "ebay": ("ebay", "ای بی"),
+}
+
+
+# Aliases help imports; they never imply marketplace fee rates.
+def register_aliases():
+    for market, tokens in TOKENS.items():
+        names = MARKET_COLUMNS.setdefault(market, {})
+        for token in tokens:
+            for prefix, field in [
+                ("commission", "commission_rate"),
+                ("commission rate", "commission_rate"),
+                ("shipping", "shipping"),
+                ("shipping cost", "shipping"),
+                ("selling price", "current_price"),
+                ("price", "current_price"),
+                ("کمیسیون", "commission_rate"),
+                ("هزینه ارسال", "shipping"),
+                ("قیمت فروش", "current_price"),
+            ]:
+                names[f"{prefix} {token}"] = field
+                names[f"{token} {prefix}"] = field
+
+
+register_aliases()
+
+
 def available_markets(headers: list[str]) -> list[str]:
     keys = {header_key(h) for h in headers}
     return [m for m, names in MARKET_COLUMNS.items() if keys & {header_key(n) for n in names}]

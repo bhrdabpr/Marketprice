@@ -1,0 +1,177 @@
+"""Session-selected interface copy. Stored keys, currencies and financial data are canonical."""
+
+import re
+
+FA = {
+    "No actions needed for the selected products.": "برای کالاهای انتخاب‌شده موردی نیازمند اقدام نیست.",
+    "Know your price floor. Test your campaign. Keep the calculation trail.": "قیمت مناسب را حساب کنید، سودتان را ببینید و با اطمینان تصمیم بگیرید.",
+    "Example marketplace profiles • Enter your own verified fees and tax rules • All calculations run on this server": "انتخاب بازار فقط به شناخت ستون‌ها کمک می‌کند؛ کارمزد و مالیات قرارداد خودتان را وارد کنید.",
+    "Workspace (بخش برنامه)": "چه کاری می‌خواهید انجام دهید؟",
+    "Pricing (قیمت گذاری)": "قیمت‌گذاری کالاها",
+    "Actual profit (سود واقعی)": "بررسی سود و تسویه",
+    "Download sample input": "دریافت فایل نمونه",
+    "Upload products (.xlsx or UTF-8 .csv)": "فایل کالاها را انتخاب کنید (Excel یا CSV)",
+    "25 MiB / 100,000 rows maximum. Required blanks cause errors; enter 0 only when confirmed. Samples include one intentional error.": "حداکثر ۲۵ مگابایت و ۱۰۰ هزار کالا؛ اگر هزینه‌ای واقعاً صفر است، عدد صفر بنویسید. فایل نمونه یک خطای آموزشی دارد.",
+    "Calculation settings": "تنظیمات قیمت‌گذاری",
+    "Marketplace for files without a marketplace column": "محل فروش کالاها",
+    "Flexible catalog (review cost confidence)": "محاسبه با ستون‌های موجود در فایل",
+    "Currency for files without a currency column": "واحد مبالغ داخل فایل",
+    "Target margin for files without a target column": "حاشیه سود دلخواه شما",
+    "Flexible mode: absent costs/taxes produce provisional scenarios until confirmed inapplicable. Included columns need values for every product. Fixed tax amount → other_fixed; seller tax percentage → transaction_tax_rate. No current price → price floor only.": "هزینه نامشخص با هزینه صفر فرق دارد. خانه خالی فقط همان کالا را نامعتبر می‌کند. بدون قیمت فروش فعلی، فقط کف قیمت محاسبه می‌شود.",
+    "Number format": "روش نوشتن عدد در فایل",
+    "Additional margin scenarios (semicolon separated)": "حاشیه سودهای دیگر؛ با ; جدا کنید",
+    "Campaign discounts (semicolon separated)": "درصدهای تخفیف برای مقایسه؛ با ; جدا کنید",
+    "Discount type": "نوع تخفیف",
+    "Platform-funded share": "سهم بازار از هزینه تخفیف",
+    "Explicitly allow unsafe campaign simulations (still labeled unsafe)": "سناریوهای زیر حد سود را هم برای بررسی نشان بده",
+    "Analysis concerns unit prices and margins only (تحلیل قیمت و سود هر واحد).": "در این بخش سود هر واحد محاسبه می‌شود؛ موجودی انبار مبنای پیش‌بینی فروش نیست.",
+    "From workbook to defensible prices": "سه قدم تا قیمت‌گذاری روشن",
+    "**1 · Validate**\n\nMap columns and catch unknown costs before pricing.": "**۱ · فایل را بشناسید**\n\nستون‌ها را بررسی کنید و هزینه‌های ناقص را ببینید.",
+    "**2 · Calculate**\n\nSeparate contribution, collected tax, and seller expenses.": "**۲ · سود را حساب کنید**\n\nقیمت سربه‌سر و حاشیه سود دلخواه را مقایسه کنید.",
+    "**3 · Decide**\n\nCompare margin targets and funded campaigns, then export the audit trail.": "**۳ · تصمیم بگیرید**\n\nقیمت و تخفیف را بررسی کنید و گزارش بگیرید.",
+    "**Privacy:** uploads and results stay in server session memory. Reset the session to clear them. Local launch binds to localhost.": "**حریم خصوصی:** فایل و نتیجه در حافظه همین نشست پردازش می‌شوند؛ با پاک‌کردن نشست حذف می‌شوند. نسخه محلی روی رایانه خودتان اجرا می‌شود.",
+    "Seasonal offers (پیشنهادهای مناسبتی)": "پیشنهادهای مناسبتی",
+    "Events (مناسبت ها)": "مناسبت‌های مورد نظر",
+    "Black Friday (جمعه سیاه)": "جمعه سیاه",
+    "Christmas (کریسمس)": "کریسمس",
+    "Nowruz (نوروز)": "نوروز",
+    "Yalda (یلدا)": "یلدا",
+    "Each event uses your own fees and margin. Identical settings produce identical offers. Suggestions use actual current prices, with no invented reference-price increases. Extra costs use each row's currency.": "تخفیف‌ها بر پایه قیمت واقعی فعلی و هزینه‌های شما هستند. تنظیمات یکسان، پیشنهاد یکسان می‌دهد؛ عنوان مناسبت پیش‌بینی فروش نیست.",
+    "Reuse saved setup (.json)": "استفاده از تنظیمات ذخیره‌شده",
+    "Seller tax expense rate (only when no tax column exists)": "مالیات فروشنده؛ فقط اگر ستون مالیات ندارید",
+    "Seller expense as a percentage of selling price, separate from collected VAT. If no tax column exists, enter the rate here. Zero means no seller tax expense.": "این درصد از قیمت فروش، هزینه فروشنده است و با ارزش افزوده دریافتی فرق دارد؛ صفر یعنی این مالیات را ندارید.",
+    "I confirm omitted cost categories are inapplicable or included elsewhere (zero additional cost)": "تأیید می‌کنم هزینه‌های خارج از فایل وجود ندارند یا قبلاً در هزینه‌های دیگر آمده‌اند",
+    "Which included costs are estimates? (هزینه های تخمینی)": "کدام هزینه‌ها تخمینی هستند؟",
+    "Optional dated seller rule bundle (.json)": "قواعد قرارداد فروشنده؛ اختیاری",
+    "Configure applicable costs for this workbook": "تعیین هزینه‌های مربوط به این فایل",
+    "Input preview": "پیش‌نمایش اطلاعات",
+    "Validate and calculate": "بررسی و محاسبه",
+    "Marketplace columns to use": "بازار مورد نظر در این فایل",
+    "This file contains marketplace-specific columns. Only the selected marketplace's selling price, commission and shipping are used. Previous calculated prices and status columns are excluded; review the mapping below.": "فقط قیمت و هزینه‌های بازار انتخاب‌شده استفاده می‌شوند؛ ستون‌های بازارهای دیگر خودکار کنار گذاشته شده‌اند.",
+    "Column mapping": "هر ستون فایل چه معنایی دارد؟",
+    "Review the suggested fields. Choose a field for unknown headers, or explicitly Ignore column. Amounts and percentage rates are different fields.": "بیشتر ستون‌ها خودکار شناخته می‌شوند؛ فقط موارد نامشخص را تعیین کنید. مبلغ هزینه با درصد هزینه فرق دارد.",
+    "I reviewed the column meanings, ignored columns and units": "معنی ستون‌ها، موارد کنارگذاشته‌شده و واحد مبالغ را بررسی کردم",
+    "Save reusable setup (ذخیره تنظیمات)": "ذخیره تنظیمات برای فایل‌های بعدی",
+    "Seller-reviewed rule bundle loaded; evidence is declared, not independently verified. Unsupported rule fields are rejected.": "قواعد اعلام‌شده فروشنده بارگذاری شد؛ صحت قرارداد باید توسط شما بررسی شود.",
+    "Applicable cost fields (all present columns are still validated)": "هزینه‌های قابل اعمال؛ ستون‌های موجود همیشه بررسی می‌شوند",
+    "Unselected cost fields are treated as zero only when their columns are absent. Present blank cells still cause product-level errors. Tax settings and purchase cost remain required.": "هزینه خارج از فایل فقط با تأیید شما صفر است؛ خانه خالی در ستون موجود همچنان برای همان کالا خطاست.",
+    "Download results workbook": "دریافت گزارش کامل Excel",
+    "Action list (اقدامات پیشنهادی)": "اول این موارد را بررسی کنید",
+    "Missing costs block actionable advice. Confirmed inputs still require checking your actual seller fee contract. Impacts are per unit and grouped by currency.": "تا هزینه‌های ناقص مشخص نشوند، قیمت قابل تأیید نیست. قرارداد کارمزد خودتان را هم بررسی کنید؛ مبالغ ارزهای مختلف با هم جمع نمی‌شوند.",
+    "Price analysis (تحلیل قیمت)": "مقایسه قیمت و حاشیه سود",
+    "Compare your selected margins: Increase / افزایش, Review decrease / بررسی کاهش, Keep / حفظ قیمت. A floor alone never justifies cutting a profitable price. A higher unit margin does not prove higher total profit; demand is not estimated.": "قیمت سودآور صرفاً به‌خاطر پایین‌تر بودن کف قیمت کاهش نمی‌یابد. افزایش سود هر واحد لزوماً به معنی افزایش سود کل فروش نیست.",
+    "Seasonal campaign offers (پیشنهاد کمپین مناسبتی)": "مقایسه تخفیف‌های مناسبتی",
+    "SAFE describes mathematical feasibility only; check cost_confidence and decision_ready before acting. Required sales multiplier shows how many units would preserve baseline contribution, not a demand forecast. NO_SAFE_OFFER means no permitted discount meets them. Percentages shown here are rounded for display. Exact values and every product are in the export.": "مناسب بودن تخفیف یعنی حد سود رعایت شده است، نه تضمین فروش. ضریب فروش لازم نشان می‌دهد برای حفظ سود پایه چقدر بیشتر باید بفروشید. اعداد دقیق در گزارش کامل هستند.",
+    "Processing failed safely. Check the input and configuration; no recommendation is available for this run.": "محاسبه انجام نشد؛ فایل و تنظیمات را بررسی کنید. برای این اجرا قیمتی پیشنهاد نشده است.",
+    "Preparing audited workbook…": "در حال آماده‌سازی گزارش…",
+    "Review price changes (تأیید تغییر قیمت)": "بررسی و تأیید تغییر قیمت",
+    "Select one scenario per product": "برای هر کالا فقط یک حاشیه سود انتخاب کنید",
+    "I checked these prices against my current seller fee contract": "این قیمت‌ها را با قرارداد فعلی فروش خودم بررسی کردم",
+    "Exact inputs, versions, rules and row identities are included in the workbook. No cross-currency totals.": "ورودی دقیق، قواعد و شماره ردیف‌ها در گزارش ثبت می‌شوند؛ ارزهای متفاوت با هم جمع نمی‌شوند.",
+    "Preview limited to 1,000 records. Download includes every input row.": "نمایش تا ۱۰۰۰ ردیف؛ گزارش کامل شامل همه کالاهاست.",
+    "Download approved change manifest": "دریافت فهرست تغییرات تأییدشده",
+    "Review manifest only; not an official marketplace upload template. No prices have been published.": "این فقط فهرست تأییدشده شماست؛ قالب رسمی بازار نیست و هیچ قیمتی منتشر نشده است.",
+    "Actual profit and settlements (سود واقعی و تسویه)": "سود فروش و تطبیق تسویه",
+    "Use normalized transaction and dated-cost exports. Vendor-native templates are not yet certified. Amounts must exclude collected VAT; expenses are negative. Payouts are transfers, not revenue.": "از قالب نمونه تراکنش و هزینه استفاده کنید؛ قالب خام بازارها هنوز تأیید نشده است. هزینه‌ها منفی و مبالغ بدون ارزش افزوده دریافتی هستند. تسویه دوباره به درآمد اضافه نمی‌شود.",
+    "Transactions (تراکنش ها)": "فایل تراکنش‌ها",
+    "Dated costs (هزینه های تاریخ دار)": "فایل هزینه‌های تاریخ‌دار",
+    "Reporting date (تاریخ گزارش)": "تاریخ گزارش (میلادی)",
+    "I reviewed signs, currency, VAT treatment and completeness; cost events exclude purchase COGS": "علامت مبالغ، واحد پول و مالیات را بررسی کردم؛ هزینه خرید دوباره در تراکنش هزینه ثبت نشده است",
+    "Try synthetic demo (نمونه آزمایشی)": "امتحان با داده نمونه",
+    "Analyze actual profit (تحلیل سود واقعی)": "محاسبه سود و بررسی تسویه",
+    "These are results for the supplied extract. Missing periods or unreported charges cannot be detected automatically. Review unallocated costs before comparing individual products.": "نتیجه فقط بر پایه داده‌های ارائه‌شده است. هزینه یا دوره حذف‌شده خودکار قابل تشخیص نیست؛ قبل از مقایسه کالاها، هزینه‌های مشترک را بررسی کنید.",
+    "Download reconciliation evidence": "دریافت گزارش سود و تسویه",
+    "Synthetic demo — reporting date 2026-11-01. These are invented examples, not your business data.": "داده نمایشی با تاریخ گزارش ۲۰۲۶/۱۱/۰۱؛ این اعداد نمونه هستند و به کسب‌وکار شما مربوط نیستند.",
+    "Products": "کالاها",
+    "Recommendations": "سناریوهای قیمت",
+    "Campaigns": "تخفیف‌ها",
+    "Errors & warnings": "خطاها و هشدارها",
+    "Audit": "جزئیات محاسبه",
+    "Products processed": "کل کالاها",
+    "Valid products": "کالاهای معتبر",
+    "Invalid products": "کالاهای نیازمند اصلاح",
+    "SKUs with confirmed-cost campaigns": "کالاهای آماده بررسی تخفیف",
+    "Action List": "موارد نیازمند بررسی",
+    "Platform Comparison": "مقایسه بازارها",
+    "Product Platform": "مقایسه هر کالا در بازارها",
+    "Order Contribution": "سود هر سفارش",
+    "Settlement Reconciliation": "تطبیق مبالغ تسویه",
+    "Campaign Actuals": "عملکرد ثبت‌شده کمپین",
+    "Errors": "خطاهای فایل",
+    "As entered": "همان واحد فایل",
+    "TOMAN → IRR": "تومان به ریال (ضرب در ۱۰)",
+    "Percentage number": "عدد درصد؛ مثلاً ۱۰ یعنی ۱۰٪",
+    "Ignore column": "این ستون در محاسبه لازم نیست",
+    "Choose field…": "معنی ستون را انتخاب کنید…",
+    "percent": "درصدی",
+    "fixed": "مبلغ ثابت",
+    "en": "اعشار نقطه‌ای؛ 1,234.50",
+    "fa": "اعداد فارسی؛ ۱٬۲۳۴٫۵۰",
+    "comma": "اعشار ویرگولی؛ 1.234,50",
+    "Validating and calculating independent products": "در حال بررسی و محاسبه کالاها",
+    "Complete — results ready": "محاسبه تمام شد؛ نتیجه آماده است",
+    "All products": "همه کالاها",
+    "Only valid products": "فقط کالاهای معتبر",
+    "Only invalid products": "فقط کالاهای نیازمند اصلاح",
+    "Product status": "نمایش کالاها",
+    "Automatically excluded columns": "ستون‌هایی که خودکار کنار گذاشته شدند",
+    "Advanced matching fields": "نمایش همه گزینه‌های تخصصی ستون‌ها",
+    "Choose a sales channel": "کالاها را کجا می‌فروشید؟",
+    "Personal website / custom": "سایت شخصی / تنظیمات دلخواه",
+    "Original currency": "واحد اصلی فایل",
+    "Display currency": "واحد نمایش مبلغ",
+    "Use Persian digits": "نمایش اعداد فارسی",
+    "Display units only; input units and exported amounts remain unchanged. 1 toman = 10 rial. Other currencies are never converted.": "این گزینه فقط نمایش را تغییر می‌دهد؛ واحد ورودی و گزارش دانلودی عوض نمی‌شود. هر تومان ۱۰ ریال است؛ ارزهای دیگر تبدیل نمی‌شوند.",
+    "Common product columns are shown first; advanced fields remain available.": "ستون‌های رایج این محل فروش در اولویت هستند؛ برای موارد خاص گزینه‌های تخصصی را باز کنید.",
+    "Your store name (optional)": "نام فروشگاه شما (اختیاری)",
+}
+FA.update(
+    {
+        "Loss": "زیان",
+        "Saved setup belongs to another marketplace; select its sales channel above.": "تنظیمات ذخیره‌شده مربوط به بازار دیگری است؛ همان بازار را از بالای صفحه انتخاب کنید.",
+        "Map a purchase cost column before calculating": "ستون قیمت خرید را مشخص کنید تا محاسبه انجام شود.",
+        "DUPLICATE_COLUMNS: choose unique mappings": "دو ستون به یک مفهوم وصل شده‌اند؛ برای هر مفهوم فقط یک ستون انتخاب کنید.",
+        "Resolve the highlighted column mappings before calculating": "پیش از محاسبه، معنی ستون‌های نامشخص را انتخاب کنید.",
+        "Template changed: review columns and save a new setup": "ساختار فایل تغییر کرده است؛ ستون‌ها را دوباره بررسی و تنظیمات جدید را ذخیره کنید.",
+        "Input preview uses the original input currency; display conversion applies to calculated results only.": "پیش‌نمایش ورودی با واحد اصلی فایل است؛ تبدیل نمایشی فقط روی نتایج محاسبه‌شده اعمال می‌شود.",
+    }
+)
+
+EN = {
+    "Marketplace for files without a marketplace column": "Sales channel",
+    "Currency for files without a currency column": "Currency used in your file",
+    "Target margin for files without a target column": "Your target profit margin",
+    "Column mapping": "What does each column mean?",
+    "Flexible catalog (review cost confidence)": "Use the costs included in your file",
+    "I confirm omitted cost categories are inapplicable or included elsewhere (zero additional cost)": "I confirm costs outside this file do not apply or are already included",
+    "Which included costs are estimates? (هزینه های تخمینی)": "Which costs are estimates?",
+}
+
+
+def translate(text, language="en"):
+    if not isinstance(text, str):
+        return text
+    if language == "en":
+        return EN.get(text, re.sub(r"\s*\([^)]*[\u0600-\u06ff][^)]*\)", "", text))
+    if text in FA:
+        return FA[text]
+    match = re.match(r"(\d+) products have missing or estimated costs:", text)
+    if match:
+        return f"{match[1]} کالا هزینه ناقص یا تخمینی دارد؛ قیمت آن‌ها موقت است و هنوز قابل تأیید نیست."
+    if text.startswith("Saved settings active:"):
+        return "تنظیمات ذخیره‌شده فعال است؛ برای استفاده از تنظیمات صفحه، فایل تنظیمات را حذف کنید."
+    for prefix, replacement in [
+        ("Examples: ", "نمونه مقادیر: "),
+        ("Value format: ", "واحد یا نوع عدد: "),
+        ("Sample ", "فایل نمونه "),
+        ("Choose a field or Ignore column for: ", "معنی این ستون‌ها را مشخص کنید: "),
+    ]:
+        if text.startswith(prefix):
+            return replacement + text[len(prefix) :]
+    for suffix, replacement in [
+        (" — margin (حاشیه سود)", " — حاشیه سود"),
+        (" — extra cost per item (هزینه اضافی هر واحد)", " — هزینه اضافی هر واحد"),
+    ]:
+        if text.endswith(suffix):
+            return translate(text[: -len(suffix)], language) + replacement
+    return text

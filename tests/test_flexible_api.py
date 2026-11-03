@@ -146,8 +146,8 @@ def test_future_marketplace_adapter_joins_costs_without_guessing():
 def test_ui_starts_with_flexible_controls():
     app = AppTest.from_file(Path("app.py").resolve()).run()
     assert not app.exception
-    assert next(c for c in app.checkbox if c.label.startswith("Flexible catalog")).value
-    assert any(t.label.startswith("Target margin") for t in app.text_input)
+    assert next(c for c in app.checkbox if c.key == "flexible_mode").value
+    assert any(t.key == "target_margin" for t in app.text_input)
 
 
 def test_api_accepts_cost_confidence_and_rejects_nonboolean_confirmation():
@@ -171,8 +171,8 @@ def test_api_reconciliation_returns_source_errors_without_fabricating_profit():
 
 def test_actual_profit_demo_renders_without_upload_or_exception():
     app = AppTest.from_file(Path("app.py").resolve()).run()
-    app.radio[0].set_value("Actual profit (سود واقعی)").run()
-    demo = next(b for b in app.button if b.label == "Try synthetic demo (نمونه آزمایشی)")
+    app.radio(key="workspace").set_value("Actual profit (سود واقعی)").run()
+    demo = next(b for b in app.button if b.label == "Try synthetic demo")
     demo.click().run()
     assert not app.exception
     result = app.session_state["operations_result"]

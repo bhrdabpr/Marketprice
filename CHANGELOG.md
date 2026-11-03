@@ -1,5 +1,16 @@
 # 1.3.0 — Bilingual costs, price decisions and seasonal offers
 
+## 1.5.0 — 2026-11-03
+
+- Add selectable Persian/English interfaces, automatic RTL/LTR layout, readable local fonts and optional Persian digits.
+- Add display-only IRR/TOMAN conversion with thousands separators; stored inputs, calculations, identifiers and downloads remain unchanged.
+- Add All / Valid / Needs correction product pills; related calculations and errors follow the selected product rows.
+- Put sales-channel selection before upload: custom website, Digikala, Snapp Shop, Tapsi Shop, Amazon, eBay, Shopify and WooCommerce.
+- Automatically exclude other-channel columns, show an exclusion summary, and prioritize channel-relevant mapping fields with an advanced option.
+- Preserve business settings when switching interface languages and simplify product/error summaries.
+- Channel presets are import conveniences, not official fee schedules or live marketplace connectors.
+
+
 ## 1.4.0 — 2026-11-03
 
 - Retain profitable current prices when a computed floor alone would suggest a reduction; competitor-driven decreases require review.

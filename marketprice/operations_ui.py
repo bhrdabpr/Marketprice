@@ -3,26 +3,32 @@
 from datetime import date
 from pathlib import Path
 
-import pandas as pd
 import streamlit as st
 
 from .actuals import reconcile
+from .i18n import translate
 from .io import read_upload, workbook_bytes
+from .presentation import preview
 
 
-def render_operations():
-    st.subheader("Actual profit and settlements (سود واقعی و تسویه)")
+def render_operations(language="en", display_currency="original", persian_digits=False):
+    def t(text):
+        return translate(text, language)
+
+    st.subheader(t("Actual profit and settlements (سود واقعی و تسویه)"))
     st.caption(
-        "Use normalized transaction and dated-cost exports. Vendor-native templates are not yet certified. Amounts must exclude collected VAT; expenses are negative. Payouts are transfers, not revenue."
+        t(
+            "Use normalized transaction and dated-cost exports. Vendor-native templates are not yet certified. Amounts must exclude collected VAT; expenses are negative. Payouts are transfers, not revenue."
+        )
     )
     samples = Path(__file__).resolve().parent.parent / "samples" / "operations"
     for filename in ("transactions.csv", "costs.csv"):
-        st.download_button("Sample " + filename, (samples / filename).read_bytes(), filename, key=filename)
-    transactions = st.file_uploader("Transactions (تراکنش ها)", type=["csv", "xlsx"], key="transactions")
-    costs = st.file_uploader("Dated costs (هزینه های تاریخ دار)", type=["csv", "xlsx"], key="costs")
-    as_of = st.date_input("Reporting date (تاریخ گزارش)", value=date.today())
+        st.download_button(t("Sample " + filename), (samples / filename).read_bytes(), filename, key=filename)
+    transactions = st.file_uploader(t("Transactions (تراکنش ها)"), type=["csv", "xlsx"], key="transactions")
+    costs = st.file_uploader(t("Dated costs (هزینه های تاریخ دار)"), type=["csv", "xlsx"], key="costs")
+    as_of = st.date_input(t("Reporting date (تاریخ گزارش)"), value=date.today())
     confirmed = st.checkbox(
-        "I reviewed signs, currency, VAT treatment and completeness; cost events exclude purchase COGS"
+        t("I reviewed signs, currency, VAT treatment and completeness; cost events exclude purchase COGS")
     )
     current = (
         transactions.getvalue() if transactions else None,
@@ -30,7 +36,7 @@ def render_operations():
         as_of,
         confirmed,
     )
-    demo = st.button("Try synthetic demo (نمونه آزمایشی)")
+    demo = st.button(t("Try synthetic demo (نمونه آزمایشی)"))
     if demo:
         st.session_state["operations_result"] = reconcile(
             read_upload(
@@ -42,7 +48,7 @@ def render_operations():
         st.session_state["operations_input"] = current
         st.session_state["operations_demo"] = True
     if st.columns([1, 2, 1])[1].button(
-        "Analyze actual profit (تحلیل سود واقعی)",
+        t("Analyze actual profit (تحلیل سود واقعی)"),
         disabled=not (transactions and costs and confirmed),
         width="stretch",
     ):
@@ -57,7 +63,7 @@ def render_operations():
             st.session_state["operations_input"] = current
             st.session_state["operations_demo"] = False
         except ValueError as exc:
-            st.error(str(exc))
+            st.error(t(str(exc)))
     if current != st.session_state.get("operations_input"):
         st.session_state.pop("operations_result", None)
     saved_result = st.session_state.get("operations_result")
@@ -65,10 +71,14 @@ def render_operations():
         result = saved_result
         if st.session_state.get("operations_demo"):
             st.info(
-                "Synthetic demo — reporting date 2026-11-01. These are invented examples, not your business data."
+                t(
+                    "Synthetic demo — reporting date 2026-11-01. These are invented examples, not your business data."
+                )
             )
         st.warning(
-            "These are results for the supplied extract. Missing periods or unreported charges cannot be detected automatically. Review unallocated costs before comparing individual products."
+            t(
+                "These are results for the supplied extract. Missing periods or unreported charges cannot be detected automatically. Review unallocated costs before comparing individual products."
+            )
         )
         for sheet in (
             "Action_List",
@@ -79,8 +89,16 @@ def render_operations():
             "Campaign_Actuals",
             "Errors",
         ):
-            st.subheader(sheet.replace("_", " "))
-            st.dataframe(pd.DataFrame(result[sheet][:1000]).astype(str), hide_index=True)
+            st.subheader(t(sheet.replace("_", " ")))
+            st.dataframe(
+                preview(
+                    result[sheet][:1000],
+                    language=language,
+                    display_currency=display_currency,
+                    persian_digits=persian_digits,
+                ),
+                hide_index=True,
+            )
         st.download_button(
-            "Download reconciliation evidence", workbook_bytes(result), "marketprice_actuals.xlsx"
+            t("Download reconciliation evidence"), workbook_bytes(result), "marketprice_actuals.xlsx"
         )
