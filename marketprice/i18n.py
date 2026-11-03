@@ -3,6 +3,24 @@
 import re
 
 FA = {
+    "Details excluded from pricing": "جزئیات کنارگذاشته‌شده از محاسبه قیمت",
+    "Review these ignored columns": "بررسی دوباره این ستون‌ها",
+    "Download campaign decision passport": "دریافت شناسنامه تصمیم کمپین",
+    "Competitor-backed promotion review": "بررسی کمپین با شواهد رقبا",
+    "Compare only fresh, confirmed matching offers. This reviews supplied evidence; it does not collect live prices or predict Buy Box wins.": "فقط پیشنهاد همسان، تأییدشده و تازه را مقایسه کنید. این بخش داده ارائه‌شده را بررسی می‌کند؛ قیمت زنده جمع‌آوری و برنده بای‌باکس پیش‌بینی نمی‌کند.",
+    "Download competitor evidence template": "دریافت قالب شواهد رقبا",
+    "Comparable competitor offers (.csv)": "پیشنهادهای همسان رقبا CSV",
+
+    "Price-dependent cost formulas detected. Saved costs are only a current-price snapshot; changed-price and campaign advice remains provisional until the fee rule is modeled.": "هزینه وابسته به قیمت فروش شناسایی شد. هزینه ذخیره‌شده فقط مربوط به قیمت فعلی است؛ پیشنهاد قیمت و کمپین تا تعریف قانون کارمزد موقت و تأییدناپذیر است.",
+    "50 MiB XLSX / 25 MiB CSV; 100,000 data rows maximum. Blank costs need review; enter 0 only when confirmed.": "حداکثر Excel: پنجاه مگابایت، CSV: بیست‌وپنج مگابایت و صد هزار ردیف داده. هزینه خالی نیازمند بررسی است؛ صفر را فقط در صورت تأیید وارد کنید.",
+    "Worksheet to analyze": "برگه مورد بررسی",
+    "Use values last saved by Excel (no formulas or links are executed)": "استفاده از مقادیر ذخیره‌شده Excel؛ فرمول و لینک اجرا نمی‌شود",
+    "Saved values may be stale or missing. Refresh the source workbook in Excel first and verify its totals. Missing values remain product errors.": "مقادیر ذخیره‌شده ممکن است قدیمی یا خالی باشند؛ فایل مبدأ را در Excel به‌روز و جمع‌ها را کنترل کنید. خانه خالی همچنان خطای همان کالاست.",
+
+    "Clear session data": "پاک‌کردن اطلاعات این نشست",
+    "Prepare pricing summary CSV": "آماده‌سازی خلاصه قیمت‌ها CSV",
+    "Download pricing summary CSV": "دریافت خلاصه قیمت‌ها CSV",
+
     "Margin distribution": "نمودار توزیع حاشیه سود",
     "Specialist tools": "ابزارهای تخصصی",
     "Advanced calculation mode": "روش محاسبه پیشرفته",

@@ -1,3 +1,15 @@
+# Version 1.7 verification — 2026-11-04
+
+- 154 automated tests pass. Ruff and mypy32source files pass.
+- New importer tests cover explicit worksheet selection, internal source-row preservation, unused trailing formatting, unnamed fields, missing formula caches, linked-workbook opt-in, macro rejection and direct price-dependent cost detection.
+- Competitor-review tests cover exact-match/availability declarations, currency/condition mismatch, stale/future/missing timezone observations, source credentials, delivery-inclusive comparison and unconfirmed cost gates. BuyBox/demand is never predicted.
+- Private representative workbook tested locally; original input and reports remain private and excluded from publication. Cached values were not independently refreshed or certified.
+- Local browser control unavailable during this pass; no new local visual QA is claimed. Hosted browser workflow checks the public sample, worksheet control, campaign evidence-template UI, bilingual switching and downloaded workbook.
+- Design guidance from local UI/UX Pro Max skill informed the restrained light/RTL-compatible system. Figma connection remains optional/unconfirmed. User declined public screenshot uploads.
+- Public exports are synthetic samples/source. No marketplace contract certification, guaranteed campaign uplift, unique-market-feature claim, hosted SaaS certification or external seller review is made.
+
+Historical verification follows.
+
 # Version 1.6 verification — 2026-11-03
 
 - 134 automated tests pass; Ruff passes; mypy checks 30 source files.

@@ -27,6 +27,7 @@ with sync_playwright() as pw:
     page.get_by_role("heading", name="MarketPrice", exact=True).wait_for(timeout=30000)
     page.screenshot(path="docs/screenshot-upload.png", full_page=True)
     page.locator("input[type=file]").set_input_files("samples/sample_input.xlsx")
+    page.get_by_role("combobox", name="Worksheet to analyze", exact=True).wait_for(timeout=30000)
     page.get_by_text("I reviewed the column meanings, ignored columns and units", exact=True).click()
     assert page.get_by_role(
         "checkbox", name="I reviewed the column meanings, ignored columns and units"
@@ -42,6 +43,9 @@ with sync_playwright() as pw:
     page.mouse.wheel(0, 650)
     page.wait_for_timeout(500)
     page.screenshot(path="docs/screenshot-results.png", full_page=True)
+    page.get_by_role("tab", name="Campaigns", exact=True).click()
+    page.get_by_text("Competitor-backed promotion review", exact=True).click()
+    page.get_by_role("button", name="Download competitor evidence template", exact=True).wait_for()
     page.get_by_role("tab", name="Errors & warnings").click()
     page.screenshot(path="docs/screenshot-errors.png", full_page=True)
     book = load_workbook("reports/browser_download.xlsx", data_only=True)

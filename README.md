@@ -1,4 +1,4 @@
-# MarketPrice 1.6
+# MarketPrice 1.7
 
 Calculation results now appear before complete Excel export is prepared. Choose **Prepare complete Excel report** when needed; large exports can still take time.
 
@@ -39,6 +39,20 @@ python3 -m venv .venv
 Windows manual commands use `.venv\Scripts\python.exe`. If installation fails, inspect the terminal error; the launcher does not silently continue. The macOS launcher execution was tested with an existing isolated environment; fresh dependency bootstrap and native double-click behavior on every OS are not claimed tested.
 
 [Reproducible synthetic case study](CASE_STUDY.md) · [Completion checklist](FINISH_CHECKLIST.md)
+
+## Workbook and campaign evidence review
+
+Select an XLSX worksheet. For externally linked workbooks, explicitly enable saved Excel values; formulas are never evaluated and links are never fetched. Refresh source values in Excel first and verify totals. XLSX uploads are capped at50MiB, CSV at25MiB, selected worksheet XML at200MiB and total expanded archive metadata at500MiB. Unused trailing rows are ignored; internal blank rows retain source positions. Large formatted worksheets should be saved as values-only copies with unused rows removed.
+
+Direct selling-price references in cached cost formulas are flagged as estimated. Such price/campaign recommendations remain provisional; this is not a complete Excel dependency analyzer or a model of capped fees.
+
+The Campaigns tab can review a supplied [competitor evidence CSV](samples/competitor-evidence.csv). The public example is intentionally stale. Supply your actual observation time, exact-product/variant confirmation, condition, availability, currency, HTTPS source and both delivered-price components. Observations older than24hours are rejected. Customer delivery charges are distinct from the seller's shipping expense. The decision passport records observations, review time and calculation snapshot. No live competitor collection, BuyBox prediction or demand optimum is claimed. [Evidence guide](CAMPAIGN_EVIDENCE.md).
+
+## Repeat use and compact reports
+
+Saved setups retain extra margins and promotion discount/type/funding choices. A compact pricing-summary CSV is available separately from the complete Excel audit; it retains invalid products and protects literal spreadsheet text. Scenario profit relates to the scenario price. **Clear session data** removes the current session state; files already downloaded remain on your computer.
+
+See [commercial-readiness review](COMMERCIAL_READINESS.md) for remaining customer-validation and hosting gates.
 
 ## Use it
 

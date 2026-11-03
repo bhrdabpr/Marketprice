@@ -11,6 +11,8 @@ from .precision import financial
 
 DIGITS = str.maketrans("0123456789,.%", "۰۱۲۳۴۵۶۷۸۹٬٫٪")
 MONEY_FIELDS = set(FIXED_FIELDS) | {
+    "competitor_delivered_price",
+    "delivered_price_gap",
     "purchase_cost",
     "current_price",
     "recommended_price",
@@ -68,6 +70,16 @@ MONEY_FIELDS = set(FIXED_FIELDS) | {
     "fee_tax_credit",
 }
 EXTRA_LABELS = {
+    "rejection_reasons": "دلیل رد شواهد",
+    "evidence_status": "وضعیت شواهد",
+    "review": "نتیجه بررسی",
+    "buy_box_prediction": "پیش‌بینی بای‌باکس",
+    "competitor_delivered_price": "قیمت تحویلی رقیب",
+    "delivered_price_gap": "فاصله قیمت تحویلی",
+    "observed_at": "زمان مشاهده",
+    "source_url": "منبع مشاهده",
+    "rejected_observations": "مشاهدات ردشده",
+
     "decision": "اقدام پیشنهادی",
     "row": "ردیف فایل",
     "problem": "ستون‌های نیازمند اصلاح",
@@ -149,6 +161,14 @@ EXTRA_LABELS.update(
 )
 
 VALUES = {
+    "NOT_PREDICTED": "پیش‌بینی نشده",
+    "ADD_COMPARABLE_OFFER": "پیشنهاد همسان و معتبر اضافه کنید",
+    "CONFIRM_COSTS_OR_MARGIN": "هزینه‌ها یا حاشیه سود نیازمند تأیید است",
+    "WITHIN_OBSERVED_PRICE": "در محدوده قیمت مشاهده‌شده",
+    "ABOVE_OBSERVED_PRICE": "بالاتر از قیمت مشاهده‌شده",
+    "REVIEWED_SELLER_INPUT": "بررسی‌شده بر اساس داده فروشنده",
+    "REJECTED": "شواهد معتبر نیست",
+
     "VALID": "معتبر",
     "INVALID": "نیازمند اصلاح",
     "KEEP": "حفظ قیمت",

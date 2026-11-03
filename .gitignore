@@ -19,3 +19,6 @@ reports/local-launch.log
 # Generate workbook artifacts locally; publish source and CSV only
 samples/*.xlsx
 reports/*.xlsx
+
+# Additional merchant workbook: never publish
+PRICE-MARKETPLACE*

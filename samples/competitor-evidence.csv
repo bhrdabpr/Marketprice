@@ -1,0 +1,2 @@
+sku,marketplace,currency,product_reference,match_confirmed,available,offer_condition,our_condition,competitor_delivered_price,our_customer_delivery_charge,observed_at,source_url
+DEMO-001,custom,IRR,DEMO-EXACT-VARIANT,true,true,new,new,1400000,0,2000-01-01T00:00:00+00:00,https://example.com/synthetic-offer

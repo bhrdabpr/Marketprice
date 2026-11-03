@@ -2,7 +2,8 @@
 
 import hashlib
 import json
-from datetime import date
+from datetime import UTC, date, datetime
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -10,12 +11,13 @@ import streamlit as st
 from marketprice.approvals import approved_changes, snapshot
 from marketprice.batch import COST_FIELDS, process
 from marketprice.channels import CHANNELS, channel_label, excluded_columns, matching_fields, scoped_mapping
+from marketprice.competition import review_campaigns
 from marketprice.config import load_profiles
 from marketprice.contracts import load_contract
 from marketprice.flexible import calculate_catalog
 from marketprice.i18n import translate
 from marketprice.importing import IGNORE, UNMAPPED, map_rows, suggest_mapping
-from marketprice.io import json_default, read_upload, workbook_bytes
+from marketprice.io import json_default, pricing_summary_csv, read_upload, workbook_bytes, workbook_sheets
 from marketprice.models import CURRENCIES, Product
 from marketprice.operations_ui import render_operations
 from marketprice.presentation import field_label, filter_results
@@ -23,6 +25,7 @@ from marketprice.presentation import preview as localized_preview
 from marketprice.samples import sample_rows
 from marketprice.templates import load_setup, save_setup
 from marketprice.validation import number
+from marketprice.workbook_review import price_dependent_costs
 
 
 def t(text):
@@ -90,18 +93,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 st.markdown(
-    """<style>
-.stApp {background:#f1f2f4;color:#111111;}
-[data-testid="stMainBlockContainer"] {max-width:1480px;padding-top:2.5rem;padding-bottom:4rem;}
-h1 {letter-spacing:-0.04em;}
-[data-testid="stExpander"] {border-radius:12px;background:#ffffff66;}
-[data-testid="stMetric"] {padding:16px;border-radius:12px;background:#ffffff;}
-[data-testid="stSidebar"] {background:#e5e7eb;}
-.stButton, .stDownloadButton {display:flex;justify-content:center;}
-.stButton button, .stDownloadButton button {background:#2563eb;color:#ffffff;border:0;border-radius:8px;min-height:44px;}
-.stButton button p, .stDownloadButton button p {color:#ffffff;}
-.stButton button:hover, .stDownloadButton button:hover {background:#1d4ed8;color:#ffffff;}
-</style>""",
+    "<style>" + (Path(__file__).parent / "marketprice" / "ui.css").read_text() + "</style>",
     unsafe_allow_html=True,
 )
 st.title("MarketPrice")
@@ -111,6 +103,9 @@ st.info(
         "Example marketplace profiles • Enter your own verified fees and tax rules • All calculations run on this server"
     )
 )
+if st.button(t("Clear session data"), key="clear_session"):
+    st.session_state.clear()
+    st.rerun()
 with st.expander(t("Specialist tools")):
     workspace = st.radio(
         t("Workspace (بخش برنامه)"),
@@ -199,11 +194,11 @@ st.columns([1, 2, 1])[1].download_button(
     on_click="ignore",
 )
 upload = st.file_uploader(
-    t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"], key="catalog_upload"
+    t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"], key="catalog_upload", max_upload_size=50
 )
 st.caption(
     t(
-        "25 MiB / 100,000 rows maximum. Required blanks cause errors; enter 0 only when confirmed. Samples include one intentional error."
+        "50 MiB XLSX / 25 MiB CSV; 100,000 data rows maximum. Blank costs need review; enter 0 only when confirmed."
     )
 )
 with st.expander(t("File options")):
@@ -213,7 +208,36 @@ with st.expander(t("File options")):
 if upload is not None:
     try:
         raw_bytes = upload.getvalue()
-        initial = read_upload(raw_bytes, upload.name, preserve_headers=True, encoding=csv_encoding)
+        source_hash = hashlib.sha256(raw_bytes).hexdigest()
+        sheet_name = None
+        cached_values = False
+        if upload.name.lower().endswith(".xlsx"):
+            sheet_name = st.selectbox(
+                t("Worksheet to analyze"),
+                workbook_sheets(raw_bytes),
+                key="worksheet_" + source_hash[:12],
+            )
+            cached_values = st.checkbox(
+                t("Use values last saved by Excel (no formulas or links are executed)"), key="cached_values"
+            )
+            if cached_values:
+                st.warning(
+                    t(
+                        "Saved values may be stale or missing. Refresh the source workbook in Excel first and verify its totals. Missing values remain product errors."
+                    )
+                )
+        import_key = (source_hash, csv_encoding, sheet_name, cached_values)
+        if st.session_state.get("import_key") != import_key:
+            st.session_state["import_rows"] = read_upload(
+                raw_bytes,
+                upload.name,
+                preserve_headers=True,
+                encoding=csv_encoding,
+                sheet_name=sheet_name,
+                cached_values=cached_values,
+            )
+            st.session_state["import_key"] = import_key
+        initial = st.session_state["import_rows"]
         source_market = selected
         setup_file = st.file_uploader(t("Reuse saved setup (.json)"), type=["json"], key="setup")
         setup = load_setup(setup_file.getvalue(), list(initial[0])) if setup_file else None
@@ -221,6 +245,10 @@ if upload is not None:
             saved = setup["settings"]
             currency = saved.get("currency", currency)
             target = saved.get("target_margin", target)
+            margins_text = saved.get("extra_margins", margins_text)
+            discount_text = saved.get("campaign_discounts", discount_text)
+            kind = saved.get("discount_kind", kind)
+            share = saved.get("platform_share", share)
             saved_market = saved.get("marketplace", selected)
             if saved_market == "generic":
                 saved_market = "custom"
@@ -241,6 +269,12 @@ if upload is not None:
         if excluded:
             with st.expander(t("Automatically excluded columns")):
                 st.write("، ".join(excluded))
+        ignored_details = [c for c in initial[0] if suggested[c] == IGNORE and c not in excluded]
+        review_ignored = False
+        if ignored_details:
+            with st.expander(t("Details excluded from pricing")):
+                st.write(", ".join(ignored_details))
+                review_ignored = st.checkbox(t("Review these ignored columns"), key="review_ignored")
         advanced_matching = st.checkbox(t("Advanced matching fields"), value=False)
         st.caption(t("Common product columns are shown first; advanced fields remain available."))
         setup_key = hashlib.sha256(setup_file.getvalue()).hexdigest()[:8] if setup_file else ""
@@ -253,7 +287,7 @@ if upload is not None:
             mapping = {}
             conversions = {}
             for column in initial[0]:
-                if column in excluded:
+                if column in excluded or (column in ignored_details and not review_ignored):
                     mapping[column] = IGNORE
                     continue
                 choices = (
@@ -268,11 +302,7 @@ if upload is not None:
                     choices,
                     index=choices.index(suggested[column]),
                     format_func=lambda field: label(field) if field in Product.model_fields else t(field),
-                    key="map_"
-                    + setup_key
-                    + hashlib.sha256(raw_bytes).hexdigest()[:12]
-                    + str(source_market)
-                    + column,
+                    key="map_" + setup_key + source_hash[:12] + str(source_market) + column,
                 )
                 field = mapping[column]
                 unit_options = ["As entered"]
@@ -303,11 +333,7 @@ if upload is not None:
                         index=unit_options.index(setup["conversions"].get(column, "As entered"))
                         if setup and setup["conversions"].get(column, "As entered") in unit_options
                         else 0,
-                        key="unit_"
-                        + setup_key
-                        + hashlib.sha256(raw_bytes).hexdigest()[:12]
-                        + str(source_market)
-                        + column,
+                        key="unit_" + setup_key + source_hash[:12] + str(source_market) + column,
                     )
             confirmed_mapping = st.checkbox(
                 t("I reviewed the column meanings, ignored columns and units"),
@@ -372,6 +398,20 @@ if upload is not None:
             else {}
         )
         cost_states.update(dict.fromkeys(estimated_fields, "estimated"))
+        dynamic_costs = (
+            price_dependent_costs(raw_bytes, sheet_name, mapping, len(initial))
+            if cached_values and sheet_name
+            else []
+        )
+        if dynamic_costs:
+            cost_states.update(dict.fromkeys(dynamic_costs, "estimated"))
+            st.warning(
+                t(
+                    "Price-dependent cost formulas detected. Saved costs are only a current-price snapshot; changed-price and campaign advice remains provisional until the fee rule is modeled."
+                )
+                + " "
+                + ", ".join(label(f) for f in dynamic_costs)
+            )
         if confirmed_mapping:
             st.download_button(
                 t("Save reusable setup (ذخیره تنظیمات)"),
@@ -380,6 +420,10 @@ if upload is not None:
                     mapping,
                     conversions,
                     {
+                        "extra_margins": margins_text,
+                        "campaign_discounts": discount_text,
+                        "discount_kind": kind,
+                        "platform_share": share,
                         "currency": currency,
                         "target_margin": target,
                         "marketplace": source_market or selected,
@@ -454,6 +498,8 @@ if upload is not None:
         )
         settings = (
             csv_encoding,
+            sheet_name,
+            cached_values,
             flexible,
             currency,
             target,
@@ -479,6 +525,7 @@ if upload is not None:
         fingerprint = hashlib.sha256(raw_bytes + repr(settings).encode()).hexdigest()
         if st.session_state.get("fingerprint") != fingerprint:
             st.session_state.pop("result", None)
+            st.session_state.pop("summary_download", None)
             st.session_state.pop("download", None)
         calculate_clicked = st.columns([1, 2, 1])[1].button(
             t("Validate and calculate"), type="primary", disabled=not confirmed_mapping, width="stretch"
@@ -524,6 +571,8 @@ if upload is not None:
                         "conversions": conversions,
                         "selected_marketplace": source_market,
                         "seller_tax_default": default_tax,
+                        "worksheet": sheet_name,
+                        "cached_values": cached_values,
                         "policy": "Marketplace columns kept separate; ignored source columns are listed in mapping.",
                     },
                 }
@@ -552,6 +601,16 @@ if upload is not None:
                 if persian_digits
                 else len(eligible),
             )
+            if st.button(t("Prepare pricing summary CSV"), key="prepare_summary"):
+                st.session_state["summary_download"] = pricing_summary_csv(result)
+            if "summary_download" in st.session_state:
+                st.download_button(
+                    t("Download pricing summary CSV"),
+                    st.session_state["summary_download"],
+                    "marketprice_summary.csv",
+                    mime="text/csv",
+                    on_click="ignore",
+                )
             if st.button(t("Prepare complete Excel report"), key="prepare_report"):
                 with st.spinner(t("Preparing audited workbook…")):
                     st.session_state["download"] = workbook_bytes(result)
@@ -695,6 +754,48 @@ if upload is not None:
                         ],
                     ).value_counts(sort=False)
                     st.bar_chart(buckets)
+            with tabs[2], st.expander(t("Competitor-backed promotion review")):
+                st.caption(
+                    t(
+                        "Compare only fresh, confirmed matching offers. This reviews supplied evidence; it does not collect live prices or predict Buy Box wins."
+                    )
+                )
+                st.download_button(
+                    t("Download competitor evidence template"),
+                    (Path(__file__).parent / "samples" / "competitor-evidence.csv").read_bytes(),
+                    "competitor-evidence.csv",
+                    on_click="ignore",
+                )
+                evidence_file = st.file_uploader(
+                    t("Comparable competitor offers (.csv)"), type=["csv"], key="competitor_evidence"
+                )
+                observations = (
+                    read_upload(evidence_file.getvalue(), evidence_file.name, preserve_headers=True)
+                    if evidence_file
+                    else []
+                )
+                reviewed_at = datetime.now(UTC)
+                competitive_review = review_campaigns(visible_result, observations, now=reviewed_at)
+                st.dataframe(preview(competitive_review), hide_index=True)
+                if observations:
+                    st.download_button(
+                        t("Download campaign decision passport"),
+                        json.dumps(
+                            {
+                                "reviewed_at": reviewed_at.isoformat(),
+                                "calculation_snapshot": snapshot(result),
+                                "observations": observations,
+                                "review": competitive_review,
+                                "limit": "Seller-supplied observations; no live collection, verified Buy Box prediction or demand forecast.",
+                            },
+                            ensure_ascii=False,
+                            default=json_default,
+                            indent=2,
+                        ),
+                        "marketprice_campaign_passport.json",
+                        mime="application/json",
+                        on_click="ignore",
+                    )
             with tabs[3]:
                 st.dataframe(preview(visible_result["Errors"]), hide_index=True)
                 st.dataframe(preview(visible_result["Warnings"]), hide_index=True)

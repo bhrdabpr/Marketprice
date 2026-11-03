@@ -7,6 +7,10 @@ from .importing import IGNORE, UNMAPPED
 from .models import Product
 
 SETTINGS = {
+    "extra_margins",
+    "campaign_discounts",
+    "discount_kind",
+    "platform_share",
     "currency",
     "target_margin",
     "marketplace",
@@ -66,6 +70,8 @@ def validate_setup(setup, headers):
         if k not in {"omitted_costs_confirmed", "cost_states"}
     ):
         raise ValueError("Invalid settings")
+    if settings.get("discount_kind", "percent") not in {"percent", "fixed"}:
+        raise ValueError("Invalid saved discount type")
     if "omitted_costs_confirmed" in settings and not isinstance(settings["omitted_costs_confirmed"], bool):
         raise ValueError("Invalid cost confirmation")
     if "cost_states" in settings:

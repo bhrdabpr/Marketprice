@@ -1,5 +1,15 @@
 # MarketPrice release history
 
+## 1.7.0 — 2026-11-04
+
+- Add bounded worksheet selection, explicit cached-value import and source-row-preserving handling of trailing/unnamed cells.
+- Support50MiB XLSX archives while rejecting selected worksheet expansion beyond200MiB; no macro execution or external-link fetching.
+- Flag direct selling-price-dependent cost formulas as estimated; block decision-ready claims for affected scenarios.
+- Add comparable-offer evidence gates and exportable campaign decision passports with source/time/calculation snapshot.
+- Add compact summary CSV, repeatable saved margin/promotion choices and explicit session clearing.
+- Apply a local, restrained-motion design system with reduced-motion support and readable review controls.
+- Keep private merchant input/results and screenshots out of publication. Live feeds, verified contracts, BuyBox prediction and customer validation remain outside the claims.
+
 ## 1.6.0 — 2026-11-03
 
 - Simplify the main pricing journey; group specialist tools and advanced promotion settings.

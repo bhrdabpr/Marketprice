@@ -1,4 +1,4 @@
-# Current integration boundaries (1.6)
+# Current integration boundaries (1.7)
 
 - Actual-profit inputs use the documented normalized schema, not certified Digikala/Amazon native exports.
 - Fee evidence is seller-declared; caps, minimum fees, refund-specific fee rules and per-fee settlement rounding remain unsupported.
@@ -31,3 +31,7 @@ No critical calculation defect is currently known **within the documented model*
 - Development and runtime versions are pinned; lock files are not wheel-hash manifests. Dependency scan results are time-specific.
 
 Resolve applicable limitations and verify real seller contracts before using outputs to publish live prices. A model-specific reviewed pilot is appropriate; unconditional universal production-readiness claims are not.
+
+## Version1.7 import and evidence boundaries
+
+Saved Excel values require explicit opt-in and source-owner freshness checks. No formulas are calculated or external links fetched. Selected worksheet XML is bounded at200MiB; aggregate expanded archive entries at500MiB. Direct formula references to current price flag affected costs estimated; transitive/named/INDIRECT dependencies are not fully analyzed. Competitor observations are seller-supplied and timestamp-gated, not independently collected or verified. Campaign passports compare supplied delivered prices, not BuyBox-winning probabilities or demand.
