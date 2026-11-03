@@ -22,3 +22,9 @@ reports/*.xlsx
 
 # Additional merchant workbook: never publish
 PRICE-MARKETPLACE*
+
+# Local captures and workbooks are never publication artifacts
+*.xlsx
+*.xls
+*.xlsm
+docs/screenshot-final-*.png

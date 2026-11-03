@@ -1,28 +1,36 @@
-# MarketPrice 1.7
+# MarketPrice
 
-Calculation results now appear before complete Excel export is prepared. Choose **Prepare complete Excel report** when needed; large exports can still take time.
+**Check your margin before changing your price.**
 
-**Interface:** choose Persian or English, display rial/toman without changing calculations, filter valid/invalid products, and map only the chosen sales channel’s columns. [راهنمای فارسی](UI_GUIDE.fa.md).
+Turn a seller’s cost spreadsheet into explainable price floors, three margin scenarios and promotion checks. Review incomplete products individually, then export the calculation evidence.
 
-**1.4 workflow:** cost confidence, reusable setups, action lists, normalized actual-profit/settlement analysis, dated costs and approval manifests. [Development flow](DEVELOPMENT_FLOW.md) · [Operations guide](OPERATIONS.md) · [Experimental Excel companion](excel/README.md). Native marketplace adapters and the Excel button still require integration certification.
+**Local-first · English / فارسی · Excel and CSV · Open source**
 
-[Bilingual cost and pricing guide](COST_GUIDE.md): expanded optional costs, three margin scenarios, break-even, increase/decrease/keep analysis and configurable Black Friday, Christmas, Nowruz and Yalda offers. All campaign suggestions are constrained by entered costs, margins and discount limits.
+[Try the synthetic case study](CASE_STUDY.md) · [راهنمای فارسی](UI_GUIDE.fa.md) · [Financial limits](KNOWN_LIMITATIONS.md) · [What is ready for customers?](COMMERCIAL_READINESS.md)
 
+## Is it for you?
 
-## Flexible catalogs and local API
+MarketPrice is for a seller or accountant reviewing recurring price and discount decisions from a cost spreadsheet. It is useful when mixed units, missing costs and several margin scenarios make a workbook difficult to review. For a small, stable catalog with trusted formulas, Excel may remain simpler.
 
-Start with purchase cost plus only the costs/taxes that apply, or process a company catalog with eleven cost fields. Set currency and margin once; incomplete products get individual errors. [Flexible catalog guide](FLEXIBLE_CATALOG.md) · [Pricing API and future marketplace adapters](API.md). Marketplace connections are not live yet.
+| Your question | What you get |
+|---|---|
+| Which products need correction? | Product-specific missing-field errors; other products still calculate |
+| What price covers my entered costs? | Break-even and three chosen contribution-margin scenarios |
+| Can this discount preserve profit? | Unit contribution, margin limits and the sales multiplier needed to preserve baseline contribution |
+| Is this offer competitive? | Comparison against fresh, seller-supplied comparable delivered prices, with evidence and rejection reasons |
+| Can I explain the decision? | Compact CSV, complete Excel audit and an optional campaign decision passport |
 
+A campaign requiring 1.25× sales needs 25% more units to preserve contribution under the same cost assumptions. **MarketPrice does not predict those sales.**
 
-**Understand your price floor before you discount.**
+## Try it in five steps
 
-An AI-assisted portfolio project by [bhrdabpr](https://github.com/bhrdabpr), developed while studying Python. This repository is not represented as an approved CS50P submission. See [development credits](CREDITS.md).
+1. Launch locally and use [the public synthetic sample](samples/sample_input.csv) or generate the example Excel files with `PYTHONPATH=. python scripts/generate_samples.py`.
+2. Select your language, sales channel, worksheet and monetary units. Review suggested column meanings.
+3. Confirm costs and margin targets. Explicit zero means no expense; blank mapped costs invalidate that product. Unconfirmed omitted costs keep decisions provisional.
+4. Calculate. Review corrections, price scenarios and one promotion before opening specialist analyses.
+5. Download the compact summary; prepare the full Excel report only when you need it.
 
-MarketPrice is a local-first marketplace contribution calculator for CSV and Excel product data. It separates seller expenses from collected tax, computes explainable cost floors, and tests seller/platform/shared-funded campaigns. English and Persian names and numerals are supported; IRR and TOMAN remain distinct units.
-
-This release has tested financial models and an end-to-end browser workflow. It is **not a universal tax engine or an officially certified marketplace settlement calculator**. Review [model limits](KNOWN_LIMITATIONS.md), [financial methodology](FINANCIAL_METHODOLOGY.md), and [actual QA evidence](FINAL_QA_REPORT.md) before operational use. Bundled marketplace profiles are examples, not official fee schedules. No public deployment is claimed.
-
-Final English/Persian screenshots are captured locally; their public upload is pending approval.
+The standard sample has two valid products and one missing-shipping error. Its independently checked 20% target floor is **117.65 USD**. [Reproduce the calculation](CASE_STUDY.md).
 
 ## Run locally
 
@@ -40,73 +48,27 @@ Windows manual commands use `.venv\Scripts\python.exe`. If installation fails, i
 
 [Reproducible synthetic case study](CASE_STUDY.md) · [Completion checklist](FINISH_CHECKLIST.md)
 
-## Workbook and campaign evidence review
+## Know the boundaries
 
-Select an XLSX worksheet. For externally linked workbooks, explicitly enable saved Excel values; formulas are never evaluated and links are never fetched. Refresh source values in Excel first and verify totals. XLSX uploads are capped at50MiB, CSV at25MiB, selected worksheet XML at200MiB and total expanded archive metadata at500MiB. Unused trailing rows are ignored; internal blank rows retain source positions. Large formatted worksheets should be saved as values-only copies with unused rows removed.
+- Marketplace names provide **column-matching support**, not official fees or live connections. Enter your verified contract rules.
+- These are expected contribution calculations, not audited accounting profit. Unsupported fee caps, minimums and complex tax rules must not be approximated silently.
+- Explicit saved-value mode can read externally linked workbooks without executing formulas or fetching links. Cached values can be stale; detected selling-price-dependent costs remain provisional.
+- No competitor crawling, guaranteed BuyBox win, demand optimization or automatic price publishing.
+- This is a local/private-review tool. Public multi-tenant hosting, commercial validation and independent financial review remain unfinished gates.
 
-Direct selling-price references in cached cost formulas are flagged as estimated. Such price/campaign recommendations remain provisional; this is not a complete Excel dependency analyzer or a model of capped fees.
+## Privacy
 
-The Campaigns tab can review a supplied [competitor evidence CSV](samples/competitor-evidence.csv). The public example is intentionally stale. Supply your actual observation time, exact-product/variant confirmation, condition, availability, currency, HTTPS source and both delivered-price components. Observations older than24hours are rejected. Customer delivery charges are distinct from the seller's shipping expense. The decision passport records observations, review time and calculation snapshot. No live competitor collection, BuyBox prediction or demand optimum is claimed. [Evidence guide](CAMPAIGN_EVIDENCE.md).
+Keep customer workbooks and results local. The repository contains synthetic examples. Local launch processes uploads in the local server session; **Clear session data** clears app state, not existing downloads or OS storage. Never put merchant records in public GitHub issues. [Security and publication policy](SECURITY.md) · [Public repository review](docs/PUBLICATION_REVIEW.md).
 
-## Repeat use and compact reports
+## Explore only what you need
 
-Saved setups retain extra margins and promotion discount/type/funding choices. A compact pricing-summary CSV is available separately from the complete Excel audit; it retains invalid products and protects literal spreadsheet text. Scenario profit relates to the scenario price. **Clear session data** removes the current session state; files already downloaded remain on your computer.
+- **Sellers:** [Five-minute walkthrough](QUICK_TEST.md), [bilingual costs guide](COST_GUIDE.md), [competitor evidence](CAMPAIGN_EVIDENCE.md).
+- **Managers:** [Case study](CASE_STUDY.md), [financial methodology](FINANCIAL_METHODOLOGY.md), [customer-readiness review](COMMERCIAL_READINESS.md).
+- **Developers:** [Architecture](ARCHITECTURE.md), [local API](API.md), [testing](TESTING.md), [deployment limits](DEPLOYMENT.md), [contributing](CONTRIBUTING.md).
+- **Specialist workflows:** [Actual-profit and settlement imports](OPERATIONS.md), [experimental Excel companion](excel/README.md). These require additional setup and are outside the main pricing journey.
 
-See [commercial-readiness review](COMMERCIAL_READINESS.md) for remaining customer-validation and hosting gates.
+## Project status
 
-## Use it
+Version 1.7 with subsequent fixes documented in [the changelog](CHANGELOG.md). See [QA evidence](FINAL_QA_REPORT.md) for exactly what was tested; tests are not marketplace certification. Fresh OS installs, native Excel integration and a recorded customer acceptance review are not claimed verified.
 
-1. Download the sample template or open `samples/sample_input.xlsx`.
-2. Replace example values with verified per-product costs and rates. Enter `0` explicitly for confirmed no-cost items; blanks remain unknown. Store SKU identifiers as text.
-3. Upload `.xlsx` or `.csv` (UTF-8 by default; explicit UTF-16, Windows-1256 and Windows-1252 options are available). Choose a number locale and map columns if needed.
-4. Review column meanings, units and which costs apply. Missing cost categories remain provisional until confirmed inapplicable or included elsewhere. A blank in a mapped cost column invalidates only that product.
-5. Set the primary margin, two additional margin scenarios and one promotion discount. Specialist funding options are under Advanced promotion settings. Click **Validate and calculate**.
-6. Review errors and warnings, then prepare and download the complete report (14 pricing sections).
-
-The sample intentionally includes one missing-shipping row. A successful sample run gives two valid products, one invalid product, and **117.65 USD** for the golden 20% target. This is an example, not a recommended price for real merchandise.
-
-## Capabilities
-
-- Decimal financial ledger, progressive category commissions, four explicit fee bases.
-- Inclusive/exclusive transaction tax, input tax credits and fee-tax recovery.
-- Required-data errors with SKU/row/field/code/correction; no blank-to-zero coercion.
-- Cost floors, multiple margin targets, competitor/current-price rules and price constraints.
-- Percentage/fixed campaigns, shared funding, minimum-margin checks and explicit unsafe override.
-- Versioned generic, custom, Digikala, Snapp Shop, Amazon, eBay, Shopify and WooCommerce profiles.
-- Auditable Excel export, CLI, local UI, formula-injection protection and bounded uploads.
-
-Margin means contribution divided by revenue excluding collected tax. No profit forecast is produced from unknown sales volumes. Market-optimal demand-based pricing is future work.
-
-## CLI and deployment
-
-```sh
-.venv/bin/python -m marketprice.cli samples/sample_input.xlsx result.xlsx
-.venv/bin/python -m marketprice.cli products.csv result.xlsx --locale fa --rules custom_profiles.json
-```
-
-For a browser deployment, use `docker compose up --build` after installing Docker. See [deployment instructions](DEPLOYMENT.md) for access control, resource settings and verification. Docker is prepared but was not built here because the environment has no Docker executable.
-
-## Verification and performance
-
-See [TESTING.md](TESTING.md) for reproducible unit, property, browser, lint, type and dependency checks, and `reports/` for their actual outputs. Benchmarks cover calculation **and XLSX export**, not only arithmetic: 1,000, 10,000 and 100,000 rows were measured on macOS ARM64/Python 3.13.3. Refer to the recorded JSON files for exact times and environment; no universal performance guarantee is implied.
-
-## Documentation
-
-[Architecture](ARCHITECTURE.md) · [Financial model](FINANCIAL_METHODOLOGY.md) · [Rules](MARKETPLACE_CONFIGURATION.md) · [Input fields](DATA_DICTIONARY.md) · [Persian guide](docs/راهنما.md) · [Research](RESEARCH_AND_BUILD_VS_FORK.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
-
-MIT-licensed original source. No upstream project code was copied. Contributions should include independent financial evidence and regression tests.
-
-See [the five-minute test walkthrough](QUICK_TEST.md), including five-cost and ten-cost example workbooks.
-
-## Quick verification
-
-```sh
-python -m pip install -r requirements-dev.lock
-python -m pytest
-ruff check .
-mypy marketprice app.py
-```
-
-For a manual check, upload the sample, calculate and confirm two valid products, one missing-shipping error, and the 117.65 USD golden price. For applicable-cost validation, run `pytest tests/test_cost_scope.py -v`: both five-cost and ten-cost inputs preserve valid products while isolating blank commission errors.
-
-Excel examples are generated locally rather than stored in this public repository. After installing dependencies, run `PYTHONPATH=. python scripts/generate_samples.py` from the project root. This creates the sample input/output and five/ten-cost workbooks from synthetic Python data. The sample CSV is also available directly.
+An AI-assisted Python portfolio project by [bhrdabpr](https://github.com/bhrdabpr), developed while studying Python. Not represented as an approved CS50P submission. [Credits](CREDITS.md). MIT licensed.

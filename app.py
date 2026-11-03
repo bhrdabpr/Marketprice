@@ -721,6 +721,8 @@ if upload is not None:
                                 for k in (
                                     "sku",
                                     "currency",
+                                    "baseline_unit_profit",
+                                    "required_sales_multiplier",
                                     "requested_discount",
                                     "discount_kind",
                                     "campaign_price",
@@ -732,6 +734,8 @@ if upload is not None:
                             }
                             for r in records
                         ]
+                    if sheet == "Campaign_Simulations":
+                        st.caption(t("Sales multiplier: 1.25 means 25% more units are needed to preserve contribution. This is a requirement, not a sales forecast. Blank means no positive comparison; campaign-wide spending is excluded."))
                     st.dataframe(preview(records), hide_index=True)
                     st.caption(t("Preview limited to 1,000 records. Download includes every input row."))
             with tabs[0], st.expander(t("Margin distribution")):

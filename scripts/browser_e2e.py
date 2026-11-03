@@ -44,6 +44,7 @@ with sync_playwright() as pw:
     page.wait_for_timeout(500)
     page.screenshot(path="docs/screenshot-results.png", full_page=True)
     page.get_by_role("tab", name="Campaigns", exact=True).click()
+    page.get_by_text("Sales multiplier: 1.25 means", exact=False).wait_for()
     page.get_by_text("Competitor-backed promotion review", exact=True).click()
     page.get_by_role("button", name="Download competitor evidence template", exact=True).wait_for()
     page.get_by_role("tab", name="Errors & warnings").click()

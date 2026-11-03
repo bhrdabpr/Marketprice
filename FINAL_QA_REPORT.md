@@ -1,3 +1,10 @@
+# Post-1.7 customer-readiness checks — 2026-11-04
+
+- 156 local tests pass; Ruff passes; mypy checks 32 source files.
+- Independent campaign check: purchase cost100/current price200/discount10% gives baseline contribution100, campaign contribution80 and required volume1.25×. Zero/negative campaign contribution yields no multiplier. Export roundtrip checked.
+- Publication review and limits: [repository review](docs/PUBLICATION_REVIEW.md). New staged-file guard also runs in CI.
+- Browser regression now requires the main campaign explanation. Hosted result must be checked for the published commit; local visual review is not claimed in this pass.
+
 # Version 1.7 verification — 2026-11-04
 
 - 154 automated tests pass. Ruff and mypy32source files pass.

@@ -3,6 +3,7 @@
 import re
 
 FA = {
+    "Sales multiplier: 1.25 means 25% more units are needed to preserve contribution. This is a requirement, not a sales forecast. Blank means no positive comparison; campaign-wide spending is excluded.": "ضریب فروش ۱٫۲۵ یعنی برای حفظ سود مشارکت باید ۲۵٪ بیشتر بفروشید؛ این پیش‌بینی فروش نیست. خانه خالی یعنی مقایسه سود مثبت ممکن نیست. هزینه کلی اجرای کمپین در این نسبت نیست.",
     "Details excluded from pricing": "جزئیات کنارگذاشته‌شده از محاسبه قیمت",
     "Review these ignored columns": "بررسی دوباره این ستون‌ها",
     "Download campaign decision passport": "دریافت شناسنامه تصمیم کمپین",

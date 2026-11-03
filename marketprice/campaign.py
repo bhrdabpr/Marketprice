@@ -39,7 +39,13 @@ def simulate(
     feasible = ledger.profit >= 0 and ledger.margin is not None and ledger.margin >= threshold
     permitted = actual_discount <= p.current_price * p.max_discount
     safe = feasible and permitted
+    baseline_profit = evaluate(p, rule, p.current_price).profit
+    # Equal total contribution at an unchanged cost mix; never a demand forecast.
+    multiplier = baseline_profit / ledger.profit if baseline_profit > 0 and ledger.profit > 0 else None
     return {
+        "baseline_unit_profit": baseline_profit,
+        "required_sales_multiplier": multiplier,
+        "volume_note": "Units needed relative to baseline sales to preserve contribution. Not a sales forecast; excludes campaign-wide fixed spend. Undefined when either unit contribution is nonpositive.",
         "discount_kind": kind,
         "requested_discount": discount,
         "actual_discount": actual_discount,
@@ -48,7 +54,7 @@ def simulate(
         "subsidy": subsidy,
         "profit": ledger.profit,
         "margin": ledger.margin,
-        "profit_change": ledger.profit - evaluate(p, rule, p.current_price).profit,
+        "profit_change": ledger.profit - baseline_profit,
         "safe": safe,
         "approved": safe or override,
         "override": override,

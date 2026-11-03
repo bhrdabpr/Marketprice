@@ -1,7 +1,28 @@
-# MarketPrice: paid-readiness review — 2026-11-03
+# MarketPrice: paid-readiness review — 2026-11-04
 
 ## Verdict
 A verified local pricing model and a reproducible demonstration exist. A subscription business, hosted multi-tenant SaaS and autonomous agent service have not been validated. The number of tests establishes evidence about defined behavior, not willingness to pay or correctness of seller contracts.
+
+## Decision: sell a narrow review outcome before building a hosted platform
+
+The candidate audience is a Persian/English-speaking seller or accountant who repeatedly reviews spreadsheet costs before promotions. This is a hypothesis, not proven demand. The offer to test is: **a repeatable pricing review with specific corrections, explained promotion economics and a reusable setup**.
+
+A generic margin calculator is weak differentiation. Amazon provides automated pricing rules, while Sellerboard advertises connected profit analytics, returns analysis and repricing. These are vendor capability claims, not independently tested comparisons. Sources checked 2026-11-04: [Amazon](https://sell.amazon.com/tools/automate-pricing), [Sellerboard](https://sellerboard.com/).
+
+| Priority | Why a customer still refuses | Work now / completion gate |
+|---|---|---|
+| 1. Trust | Entered assumptions are not verified contracts; dynamic costs can change with price | Existing provisional gates remain. Obtain one seller-approved cost model and reconcile representative prices before any operational recommendation. Do not invent the contract. |
+| 2. Decision value | A safe unit margin does not establish a good campaign | Main campaign table now includes baseline contribution and required sales multiplier. Example: 100 baseline contribution / 80 campaign contribution = 1.25× units. This excludes campaign-wide spend and predicts no demand. |
+| 3. Preparation | Users must clean data, map columns and declare missing costs | Reuse saved setups and explicit error corrections. Observe a first and second import with a real seller; measure preparation plus review time against their existing Excel workflow. No saving is claimed yet. |
+| 4. Explanation | The repository led with development chronology and many feature links | README now starts with customer questions, a five-step trial and grouped documentation; advanced capabilities remain available. |
+| 5. Market evidence | Competitor data is manually supplied and may be incomplete | Current review rejects stale or incomparable observations. Validate a lawful repeatable source before promising automation; no crawler or exclusive-data claim. |
+| 6. Delivery | No production accounts, tenant isolation, operational support or billing | Offer a local/private pilot first. SaaS infrastructure follows evidence of repeat paid use and an explicit hosting decision. |
+
+### Pilot acceptance record (not yet completed)
+
+For each consenting reviewer, keep the following privately: their existing workflow time, first-run preparation time, second-run time using saved setup, independently confirmed useful findings, false flags, decision taken and willingness to pay for a repeat review. Include failures. No merchant records in public issues.
+
+Suggested gate: three sellers complete a second review and at least two choose to pay. Stop and simplify if preparation exceeds the value of the corrections. These are proposed product decisions, not observed market facts. External feedback cannot be replaced by more generated features.
 
 ## Why a seller might leave or refuse to pay
 
