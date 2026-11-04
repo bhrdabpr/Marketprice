@@ -1,8 +1,9 @@
-## Unreleased — Iran-market settlement sensitivity
+## Post-1.7 settlement sensitivity — 2026-11-04
 
 - Added optional bilingual incremental settlement-delay cost review for current sales and campaigns, with explicit assumptions and downloadable JSON evidence.
 - Preserved original financial results; sensitivity rows never approve price changes.
 - Added Iran-market evidence/priorities and corrected stale completion-checklist items.
+- Verified 166 tests locally and the complete hosted browser/download workflow in Actions run 41804383354; source commit 80d1012.
 
 ## Post-1.7 customer-readiness fixes — 2026-11-04
 

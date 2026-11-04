@@ -17,4 +17,4 @@ Implement item1 in this milestone. Existing actual-profit histories support item
 
 Suggested proposition to test: explain how an apparently profitable promotion changes when payment is delayed and replenishment costs change. Not claimed unique or commercially validated. Use current primary sources, the existing Decimal engine and focused regression tests; extra plugins alone do not establish product value.
 
-Release gate: settlement-delay hosted browser/download verification and publication still pending; implementation checkbox is not release acceptance.
+Settlement milestone published as 80d1012 and verified by hosted Actions run 41804383354, including settlement evidence download and numerical checks. This confirms software verification, not seller acceptance or commercial validation.
