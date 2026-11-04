@@ -23,6 +23,7 @@ from marketprice.operations_ui import render_operations
 from marketprice.presentation import field_label, filter_results
 from marketprice.presentation import preview as localized_preview
 from marketprice.samples import sample_rows
+from marketprice.settlement_scenarios import review_delay
 from marketprice.templates import load_setup, save_setup
 from marketprice.validation import number
 from marketprice.workbook_review import price_dependent_costs
@@ -758,6 +759,28 @@ if upload is not None:
                         ],
                     ).value_counts(sort=False)
                     st.bar_chart(buckets)
+            with tabs[2], st.expander(t("What if settlement is delayed?")):
+                st.caption(t("Test additional financing cost on net purchase cost. Enter extra days beyond costs already included. This is not a payout forecast or a marketplace rule."))
+                delay_cols = st.columns(2)
+                extra_days = delay_cols[0].number_input(t("Additional payment delay (days)"), min_value=0, max_value=3650, value=0, key="delay_days")
+                annual_percent = delay_cols[1].number_input(t("Annual capital cost (%)"), min_value=0.0, max_value=1000.0, value=0.0, step=1.0, key="delay_rate")
+                if st.checkbox(t("These are additional costs, not financing already included"), key="delay_confirm"):
+                    delayed = review_delay(visible_result, annual_rate=number(str(annual_percent)) / 100, extra_days=extra_days)
+                    st.dataframe(preview(delayed[:1000]), hide_index=True)
+                    st.caption(t("Simple cost = net purchase cost × annual rate × extra days / 365. Positive contribution does not confirm your target margin. No sales forecast, compound interest or repayment schedule is modeled."))
+                    st.download_button(
+                        t("Download settlement scenario evidence"),
+                        json.dumps({
+                            "model": "Incremental simple ACT/365 cost on net acquisition cost",
+                            "annual_rate": number(str(annual_percent)) / 100,
+                            "extra_days": extra_days,
+                            "reviewed_at": datetime.now(UTC).isoformat(),
+                            "calculation_snapshot": snapshot(result),
+                            "review": delayed,
+                            "limits": "Sensitivity only; not approval or payout prediction. Excludes holding time, tax-credit timing, other funded costs and compounding. User confirms no duplicate financing cost.",
+                        }, default=json_default, ensure_ascii=False, indent=2),
+                        "marketprice_settlement_scenario.json", mime="application/json", on_click="ignore",
+                    )
             with tabs[2], st.expander(t("Competitor-backed promotion review")):
                 st.caption(
                     t(

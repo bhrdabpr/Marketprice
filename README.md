@@ -48,6 +48,12 @@ Windows manual commands use `.venv\Scripts\python.exe`. If installation fails, i
 
 [Reproducible synthetic case study](CASE_STUDY.md) · [Completion checklist](FINISH_CHECKLIST.md)
 
+## Iran-market development
+
+Start with [the evidence and ranked work list](IRAN_MARKET_PLAN.md). Iranian repricing competitors exist; we do not claim an empty market or a unique invention.
+
+In **Campaigns → What if settlement is delayed?**, enter additional days and your annual capital-cost assumption. Confirm these costs are not already counted. Compare current and campaign contribution, then download the assumptions and calculation evidence. Defaults are zero, not marketplace payment terms. [Model and example](SETTLEMENT_SCENARIOS.md).
+
 ## Know the boundaries
 
 - Marketplace names provide **column-matching support**, not official fees or live connections. Enter your verified contract rules.

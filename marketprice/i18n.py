@@ -3,6 +3,19 @@
 import re
 
 FA = {
+    "What if settlement is delayed?": "اگر تسویه دیرتر انجام شود چه می‌شود؟",
+    "Test additional financing cost on net purchase cost. Enter extra days beyond costs already included. This is not a payout forecast or a marketplace rule.": "اثر هزینه اضافی سرمایه را بر بهای خرید خالص بررسی کنید. فقط روزهای اضافه بر هزینه‌های محاسبه‌شده را وارد کنید. این پیش‌بینی پرداخت یا قانون مارکت‌پلیس نیست.",
+    "Additional payment delay (days)": "تأخیر اضافی دریافت وجه (روز)",
+    "Annual capital cost (%)": "هزینه سالانه سرمایه (درصد)",
+    "These are additional costs, not financing already included": "این هزینه‌ها اضافی هستند و قبلاً در تأمین مالی حساب نشده‌اند",
+    "Simple cost = net purchase cost × annual rate × extra days / 365. Positive contribution does not confirm your target margin. No sales forecast, compound interest or repayment schedule is modeled.": "هزینه ساده = بهای خرید خالص × نرخ سالانه × روزهای اضافه ÷ ۳۶۵. مثبت بودن سود به معنی رسیدن به حاشیه سود هدف نیست. پیش‌بینی فروش، سود مرکب و برنامه اقساط در این مدل نیست.",
+    "Download settlement scenario evidence": "دریافت شواهد سناریوی تأخیر تسویه",
+    "CURRENT": "فروش فعلی",
+    "CAMPAIGN": "کمپین",
+    "LOSS_AFTER_DELAY": "زیان پس از هزینه تأخیر",
+    "BREAK_EVEN_AFTER_DELAY": "سربه‌سر پس از هزینه تأخیر",
+    "POSITIVE_AFTER_DELAY": "سود مثبت پس از هزینه تأخیر",
+
     "Sales multiplier: 1.25 means 25% more units are needed to preserve contribution. This is a requirement, not a sales forecast. Blank means no positive comparison; campaign-wide spending is excluded.": "ضریب فروش ۱٫۲۵ یعنی برای حفظ سود مشارکت باید ۲۵٪ بیشتر بفروشید؛ این پیش‌بینی فروش نیست. خانه خالی یعنی مقایسه سود مثبت ممکن نیست. هزینه کلی اجرای کمپین در این نسبت نیست.",
     "Details excluded from pricing": "جزئیات کنارگذاشته‌شده از محاسبه قیمت",
     "Review these ignored columns": "بررسی دوباره این ستون‌ها",

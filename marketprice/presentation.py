@@ -11,6 +11,7 @@ from .precision import financial
 
 DIGITS = str.maketrans("0123456789,.%", "۰۱۲۳۴۵۶۷۸۹٬٫٪")
 MONEY_FIELDS = set(FIXED_FIELDS) | {
+    "capital_base", "additional_capital_cost", "contribution_before_delay", "contribution_after_delay",
     "competitor_delivered_price",
     "delivered_price_gap",
     "purchase_cost",
@@ -70,6 +71,17 @@ MONEY_FIELDS = set(FIXED_FIELDS) | {
     "fee_tax_credit",
 }
 EXTRA_LABELS = {
+    "capital_base": "مبنای سرمایه (خرید خالص)",
+    "additional_capital_cost": "هزینه اضافی سرمایه",
+    "contribution_before_delay": "سود پیش از تأخیر اضافی",
+    "contribution_after_delay": "سود پس از تأخیر اضافی",
+    "source_cost_confidence": "وضعیت تأیید هزینه مبدأ",
+    "source_campaign_safe": "کمپین مجاز در مدل مبدأ",
+    "delay_review": "نتیجه بررسی تأخیر",
+    "extra_days": "روزهای تأخیر اضافی",
+    "annual_rate": "نرخ سالانه سرمایه",
+    "scenario": "سناریو",
+
     "rejection_reasons": "دلیل رد شواهد",
     "evidence_status": "وضعیت شواهد",
     "review": "نتیجه بررسی",

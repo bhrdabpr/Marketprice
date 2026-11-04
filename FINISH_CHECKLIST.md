@@ -7,12 +7,14 @@
 - [x] Separate calculation from expensive export (on-demand complete Excel; compact export remains optional).
 - [x] Support explicit legacy CSV encoding without guessing monetary data.
 - [x] Correct documentation/version drift and distinguish examples from verified marketplace rules.
-- [ ] Publish synthetic case study (sample, verifier and explanation prepared locally).
+- [x] Publish synthetic case study (sample, verifier and explanation in the repository).
 - [x] Recheck authorized real workbook locally; publish no merchant data.
-- [ ] Run relevant tests, final browser workflow and export checks.
+- [x] Verify published post-1.7 baseline with local tests, hosted browser workflow and exports.
+- [ ] Verify new settlement-delay browser/download workflow before its final publication.
 - [x] Capture final screenshots and prepare three-minute demonstration script (video recording pending).
 - [ ] Obtain genuine seller/accountant feedback (external acceptance; never fabricate).
-- [ ] Publish final reviewed source and release notes; record remaining limits.
+- [x] Publish reviewed 1.7 source and subsequent customer-readiness fixes.
+- [ ] Publish new settlement-delay milestone after final checks; formal release tag remains pending.
 
 Reported issues disposition: real fee schedules require seller contracts; unsupported caps/minimums/mixed taxes remain explicit limits, not guessed rules. Demand optimization is outside this pricing-floor tool. Fresh OS/Docker/native Excel certification and independent audit require actual external evidence. Stars/author count are not software defects. No performance improvement or time saving is claimed without measurement.
 

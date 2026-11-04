@@ -45,6 +45,18 @@ with sync_playwright() as pw:
     page.screenshot(path="docs/screenshot-results.png", full_page=True)
     page.get_by_role("tab", name="Campaigns", exact=True).click()
     page.get_by_text("Sales multiplier: 1.25 means", exact=False).wait_for()
+    page.get_by_text("What if settlement is delayed?", exact=True).click()
+    page.get_by_role("spinbutton", name="Additional payment delay (days)", exact=True).fill("30")
+    page.get_by_role("spinbutton", name="Annual capital cost (%)", exact=True).fill("36.5")
+    page.get_by_text("These are additional costs, not financing already included", exact=True).click()
+    with page.expect_download() as delay_item:
+        page.get_by_role("button", name="Download settlement scenario evidence", exact=True).click()
+    delay_item.value.save_as("reports/settlement-scenario.json")
+    delay_data = json.loads(Path("reports/settlement-scenario.json").read_text())
+    delay_golden = next(r for r in delay_data["review"] if r["sku"] == "GOLDEN-001" and r["scenario"] == "CURRENT")
+    assert float(delay_golden["additional_capital_cost"]) == 2.1
+    assert float(delay_golden["contribution_after_delay"]) == 41.1
+    assert delay_golden["decision_ready"] is False
     page.get_by_text("Competitor-backed promotion review", exact=True).click()
     page.get_by_role("button", name="Download competitor evidence template", exact=True).wait_for()
     page.get_by_role("tab", name="Errors & warnings").click()
