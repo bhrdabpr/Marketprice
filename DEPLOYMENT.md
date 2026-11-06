@@ -16,7 +16,7 @@ Open http://127.0.0.1:8501. Dockerfile uses an unprivileged user and a Python HT
 
 **Not verified here:** Docker build/run, Linux wheel resolution and container-specific resource usage. Docker was absent. The 100,000-row benchmark ran directly on the reference Mac and does not establish compatibility with a 2 GiB container; provision more memory or split into 10,000-row batches. Uploaded CSV is limited to25MiB, XLSX archives to50MiB, selected worksheet XML to200MiB and total expanded archive entries to500MiB, 100,000 rows and 80 columns. Long records are rejected to preserve audit values, rather than silently truncated.
 
-For external access, put the container behind TLS and an authenticated reverse proxy appropriate to your organization, with WebSocket support and upload/rate limits. Do not expose a multi-user financial-cost tool anonymously. No built-in accounts, tenancy, encryption-at-rest store, durable jobs or production monitoring are included. The sample is deployable, not a claim of hardened hosted operation. No URL has been published.
+For external access, put the container behind TLS and an authenticated reverse proxy appropriate to your organization, with WebSocket support and upload/rate limits. Do not expose a multi-user financial-cost tool anonymously. No built-in accounts, tenancy, encryption-at-rest store, durable jobs or production monitoring are included. The sample is deployable, not a claim of hardened hosted operation. The public Community Cloud instance runs from main/app.py with Python 3.13 at https://marketprice-bhrdabpr.streamlit.app/. Use synthetic inputs for public demonstrations and local processing for private records.
 
 ## Retention and operations
 
