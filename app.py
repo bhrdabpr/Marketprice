@@ -3,6 +3,7 @@
 import hashlib
 import json
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
@@ -121,6 +122,21 @@ display_currency = select_localized(
 persian_digits = st.sidebar.checkbox(
     t("Use Persian digits"), value=language == "fa", key="digits_" + language
 )
+with st.sidebar.expander("تبدیل دستی ارز" if language == "fa" else "Manual currency converter"):
+    st.caption("نرخ را خودتان وارد کنید؛ این ابزار قیمت‌های فایل را تغییر نمی‌دهد." if language == "fa" else "Enter your own rate. This calculator does not change file prices.")
+    amount = st.number_input("مبلغ" if language == "fa" else "Amount", min_value=0.0, key="converter_amount")
+    source = st.selectbox("از واحد" if language == "fa" else "From", ["USD", "EUR", "IRR", "TOMAN"], key="converter_from")
+    destination = st.selectbox("به واحد" if language == "fa" else "To", ["IRR", "TOMAN", "USD", "EUR"], key="converter_to")
+    if source == destination:
+        rate = 1.0
+    elif {source, destination} == {"IRR", "TOMAN"}:
+        rate = 10.0 if source == "TOMAN" else 0.1
+    else:
+        rate = st.number_input("نرخ تبدیل: هر واحد مبدأ چند واحد مقصد است" if language == "fa" else "Rate: destination units per source unit", min_value=0.0, value=0.0, format="%.8f", key="converter_rate")
+    if rate:
+        st.write(f"{Decimal(str(amount)) * Decimal(str(rate)):,.2f} {destination}")
+    else:
+        st.info("نرخ تبدیل را وارد کنید." if language == "fa" else "Enter an exchange rate.")
 with st.sidebar.expander("راهنمای واحدها" if language == "fa" else "Display units help"):
     st.caption(t("Display units only; input units and exported amounts remain unchanged. 1 toman = 10 rial. Other currencies are never converted."))
 direction = "rtl" if language == "fa" else "ltr"
