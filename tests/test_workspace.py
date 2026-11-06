@@ -48,3 +48,13 @@ def test_cost_inputs_survive_language_and_clear():
     assert app.radio(key='ui_language').value == 'fa'
     assert app.number_input(key='cost_impact_units_1').value == 100
     assert not app.exception
+
+
+def test_selected_season_survives_language_round_trip():
+    app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'app.py')).run()
+    selected = ['Yalda (یلدا)']
+    app.multiselect[0].set_value(selected).run()
+    for language in ('fa', 'en'):
+        app.radio(key='ui_language').set_value(language).run()
+        assert app.multiselect[0].value == selected
+        assert not app.exception

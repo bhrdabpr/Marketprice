@@ -193,12 +193,14 @@ with st.sidebar:
             key="allow_unsafe",
         )
     with st.expander(t("Seasonal offers (پیشنهادهای مناسبتی)")):
+        event_key = "event_selection__" + language
         event_names = st.multiselect(
             t("Events (مناسبت ها)"),
             ["Black Friday (جمعه سیاه)", "Christmas (کریسمس)", "Nowruz (نوروز)", "Yalda (یلدا)"],
-            default=["Black Friday (جمعه سیاه)", "Nowruz (نوروز)"],
+            default=st.session_state.get("event_selection", ["Black Friday (جمعه سیاه)", "Nowruz (نوروز)"]),
             format_func=t,
-            key="event_selection",
+            key=event_key,
+            on_change=remember_selection, args=("event_selection", event_key),
         )
         events = []
         for event_name in event_names:
