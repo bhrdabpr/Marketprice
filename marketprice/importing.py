@@ -130,7 +130,7 @@ def suggest_mapping(headers: list[str], marketplace: str | None = None) -> dict[
     return mapping
 
 
-def map_rows(rows: list[dict], mapping: dict[str, str], conversions: dict | None = None) -> list[dict]:
+def map_rows(rows: list[dict], mapping: dict[str, str], conversions: dict | None = None, *, locale: str = "en") -> list[dict]:
     if any(v == UNMAPPED for v in mapping.values()):
         raise ValueError("Resolve the highlighted column mappings before calculating")
     active = [v for v in mapping.values() if v != IGNORE]
@@ -149,14 +149,15 @@ def map_rows(rows: list[dict], mapping: dict[str, str], conversions: dict | None
             if conversion != "As entered":
                 try:
                     if conversion == "TOMAN → IRR":
-                        value = number(value) * 10
+                        value = number(value, locale) * 10
                     elif conversion == "Percentage number":
                         # Explicit percent text already represents a fraction.
-                        value = number(value) if "%" in str(value).replace("٪", "%") else number(value) / 100
+                        value = number(value, locale) if "%" in str(value).replace("٪", "%") else number(value, locale) / 100
                     else:
                         raise ValueError("Unknown conversion")
-                except ValueError:
-                    pass  # Preserve invalid/blank cells for individual product validation.
+                except ValueError as exc:
+                    value = f"INVALID_CONVERSION ({conversion}): {exc}"
             record[field] = value
         result.append(record)
     return result
+

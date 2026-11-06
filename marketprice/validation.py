@@ -33,6 +33,11 @@ OPTIONAL = {"quantity", "competitor_price", "price_ceiling", "price_minimum"}
 def number(value: Any, locale: str = "en") -> Decimal:
     if isinstance(value, bool):
         raise ValueError("boolean is not a number")  # noqa: TRY004 - validation contract
+    if isinstance(value, (Decimal, int, float)):
+        result = Decimal(str(value))
+        if not result.is_finite():
+            raise ValueError("number must be finite")
+        return result
     text = str(value).strip().translate(DIGITS)
     percent = text.endswith("%")
     if percent:
@@ -129,3 +134,4 @@ def validate(raw: dict, row: int, profiles: dict[str, Profile], locale: str = "e
                     issue(sku, row, field, "MISSING_" + field.upper(), "Required by selected profile")
                 )
     return (None if errors else product), errors
+

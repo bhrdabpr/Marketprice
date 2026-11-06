@@ -1,3 +1,9 @@
+## 1.8.0 reliability and repeat-review update — 2026-11-06
+
+- Preserve selected number conventions during column conversions and keep normalized numeric values typed.
+- Apply estimated/missing cost gates in both UI calculation modes and require confidence evidence for approval and competitor review.
+- Add bilingual comparison of two complete exported reports with source-row references, duplicate identity checks and per-currency contribution-change ordering.
+
 # MarketPrice release history
 
 ## 1.8.0 — 2026-11-06

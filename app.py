@@ -11,8 +11,10 @@ import streamlit as st
 
 from marketprice.approvals import approved_changes, snapshot
 from marketprice.batch import COST_FIELDS, process
+from marketprice.changes_ui import render_changes
 from marketprice.channels import CHANNELS, channel_label, excluded_columns, matching_fields, scoped_mapping
 from marketprice.competition import review_campaigns
+from marketprice.confidence import apply_confidence
 from marketprice.config import load_profiles
 from marketprice.contracts import load_contract
 from marketprice.cost_impact import render_cost_impact
@@ -151,6 +153,9 @@ st.markdown(
 hero(workspace, language)
 with st.sidebar, st.expander("نشست" if language == "fa" else "Session"):
     st.button(t("Clear session data"), key="clear_session", on_click=clear_business_session)
+if workspace == "Changes":
+    render_changes(language)
+    st.stop()
 if workspace == "Overview":
     overview(language)
     st.stop()
@@ -402,7 +407,7 @@ if upload is not None:
         if pending:
             st.warning(t("Choose a field or Ignore column for: " + ", ".join(pending)))
             st.stop()
-        mapped = map_rows(initial, mapping, conversions)
+        mapped = map_rows(initial, mapping, conversions, locale=locale)
         if source_market:
             mapped = [{**row, "marketplace": source_market} for row in mapped]
         default_tax = st.text_input(
@@ -614,6 +619,8 @@ if upload is not None:
                 progress=lambda value: bar.progress(value),
                 events=tuple((name, number(m, locale), number(cost, locale)) for name, m, cost in events),
             )
+            if not flexible:
+                apply_confidence(result, mapped, cost_states, omitted_confirmed=omitted_confirmed, locale=locale)
             if contract_evidence:
                 result["Assumptions"].append(
                     {"setting": "Seller-reviewed contract", "value": contract_evidence}
@@ -648,7 +655,7 @@ if upload is not None:
             eligible = {
                 r["sku"]
                 for r in result["Campaign_Simulations"]
-                if r["safe"] and r.get("decision_ready", True)
+                if r["safe"] and r.get("decision_ready", False)
             }
             cols[3].metric(
                 t("SKUs with confirmed-cost campaigns"),
@@ -963,3 +970,4 @@ else:
             "**Privacy:** uploads and results stay in server session memory. Reset the session to clear them. Local launch binds to localhost."
         )
         )
+

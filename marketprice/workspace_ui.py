@@ -9,6 +9,7 @@ SECTIONS = {
     "Actual profit (سود واقعی)": ("Financial performance", "عملکرد مالی"),
     "Cost impact": ("Hidden costs", "هزینه‌های پنهان"),
     "Sales map": ("Price & sales", "قیمت و فروش"),
+    "Changes": ("What changed?", "چه چیزی تغییر کرد؟"),
 }
 
 
@@ -20,6 +21,7 @@ def hero(section, language):
     fa = language == "fa"
     title = section_label(section, language)
     subtitle = {
+        "Changes": ("Compare two catalog reviews.", "دو بررسی کاتالوگ را مقایسه کنید."),
         "Overview": ("Your next decision starts here.", "تصمیم بعدی شما از اینجا شروع می‌شود."),
         "Pricing (قیمت گذاری)": ("Turn costs into a price you can explain.", "از هزینه‌ها به یک قیمت قابل دفاع برسید."),
         "Actual profit (سود واقعی)": ("Follow your sales through to contribution and settlement.", "مسیر فروش تا سود عملیاتی و تسویه را دنبال کنید."),
@@ -53,3 +55,4 @@ def overview(language):
     with st.expander("نقشه مسیر و قابلیت‌های آینده" if fa else "Workflow & upcoming capabilities"):
         st.write("فایل ← تطبیق ستون‌ها ← بررسی کیفیت ← تحلیل ← مقایسه سناریو ← گزارش" if fa else "File → Map columns → Validate → Analyze → Compare → Export")
         st.caption("بررسی پیشنهادهای رقبا در بخش کمپین موجود است. نمودار فروش دارای رگرسیون توصیفی است. جمع‌آوری خودکار بازار و تخمین اثر تغییر قیمت هنوز پیاده‌سازی نشده‌اند." if fa else "Seller-supplied competitor evidence is available in campaigns; the sales map includes descriptive regression. Automated market collection and causal price-response estimation are not implemented yet.")
+

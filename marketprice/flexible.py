@@ -50,11 +50,11 @@ def calculate_catalog(
         "current_price": "0",  # Internal placeholder removed from all user-facing current results.
         "tax_mode": "exclusive",
         "fee_tax_recoverable": "false",
-        "target_margin": str(margin),
+        "target_margin": margin,
         "minimum_margin": "0",
-        "campaign_margin": str(margin),
+        "campaign_margin": margin,
         "max_discount": "1",
-        "increment": str(Decimal(10) ** -CURRENCIES[currency]),
+        "increment": Decimal(10) ** -CURRENCIES[currency],
         "recommendation_rule": "floor",
     }
     prepared = []
@@ -72,7 +72,7 @@ def calculate_catalog(
             and isinstance(item.get("currency"), str)
             and item["currency"] in CURRENCIES
         ):
-            item["increment"] = str(Decimal(10) ** -CURRENCIES[item["currency"]])
+            item["increment"] = Decimal(10) ** -CURRENCIES[item["currency"]]
         if "current_price" not in columns and item.get("recommendation_rule") != "floor":
             item["current_price"] = None
         prepared.append(item)
@@ -121,3 +121,4 @@ def calculate_catalog(
         }
     )
     return apply_confidence(result, rows, cost_states, omitted_confirmed=omitted_costs_confirmed, locale=locale)
+

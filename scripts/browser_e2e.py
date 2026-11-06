@@ -113,4 +113,32 @@ with sync_playwright() as pw:
     assert actual_book["Product_Platform"].max_row == 3
     actual_book.close()
     print("Actual-profit browser demo and download reconciled: 800 / 850 IRR")
+    from marketprice.batch import process
+    from marketprice.confidence import apply_confidence
+    from marketprice.io import workbook_bytes
+    from marketprice.samples import sample_row
+
+    local_reports = Path("reports")
+    for label, cost in (("earlier", "70"), ("latest", "80")):
+        inputs = [{**sample_row(), "purchase_cost": cost}]
+        review = process(inputs)
+        apply_confidence(review, inputs, omitted_confirmed=True)
+        (local_reports / f"changes-{label}.xlsx").write_bytes(workbook_bytes(review))
+    page.get_by_text("What changed?", exact=True).click()
+    page.get_by_role("heading", name="What changed?", exact=True).wait_for()
+    page.locator('input[type=file]').nth(0).set_input_files("reports/changes-earlier.xlsx")
+    page.locator('input[type=file]').nth(1).set_input_files("reports/changes-latest.xlsx")
+    with page.expect_download() as change_item:
+        page.get_by_role("button", name="Download change review", exact=True).click()
+    change_item.value.save_as("reports/changes-review.xlsx")
+    change_book = load_workbook("reports/changes-review.xlsx", read_only=True, data_only=True)
+    values = list(change_book["Changes"].values)
+    changed = dict(zip(values[0], values[1]))
+    assert changed["profit_change"] == -10
+    assert changed["cogs_change"] == 10
+    assert changed["decision_ready"] is False
+    assert len(list(change_book["Sources"].values)) == 3
+    change_book.close()
+    print("Two-report comparison browser download reconciled")
     browser.close()
+

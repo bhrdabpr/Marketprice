@@ -4,6 +4,8 @@
 
 **Review prices, promotions and settlement costs from your sales spreadsheet.**
 
+Outputs assess financial feasibility under supplied costs and rules. They do not predict sales or identify optimal market prices.
+
 Turn a seller’s cost spreadsheet into explainable price floors, three margin scenarios and promotion checks. Review incomplete products individually, then export the calculation evidence.
 
 **Local-first · English / فارسی · Excel and CSV · Open source**
@@ -82,6 +84,10 @@ Keep customer workbooks and results local. The repository contains synthetic exa
 
 ## Project status
 
-Version 1.7 with subsequent fixes documented in [the changelog](CHANGELOG.md). See [QA evidence](FINAL_QA_REPORT.md) for exactly what was tested; tests are not marketplace certification. Fresh OS installs, native Excel integration and a recorded customer acceptance review are not claimed verified.
+Version 1.8.0 with subsequent fixes documented in [the changelog](CHANGELOG.md). See [QA evidence](FINAL_QA_REPORT.md) for exactly what was tested; tests are not marketplace certification. Fresh OS installs, native Excel integration and a recorded customer acceptance review are not claimed verified.
 
 An AI-assisted Python portfolio project by [bhrdabpr](https://github.com/bhrdabpr), developed while studying Python. Not represented as an approved CS50P submission. [Credits](CREDITS.md). MIT licensed.
+
+## Repeat a catalog review
+
+In **What changed?**, upload an earlier complete MarketPrice report and the latest complete report. Match the same marketplace, SKU, variant and currency. The review shows recorded per-unit revenue, cost and contribution differences with source row references. Within each currency, the largest contribution decreases appear first. Missing confidence evidence requires review and duplicate identities block matching. The downloadable review includes source file hashes. These differences use the assumptions recorded in each report, so check fee rules and cost allocation before attributing a change to business performance. Review volume separately when estimating total monetary impact.

@@ -26,7 +26,8 @@ def calculate_matrix(matrix, setup_bytes):
     if any(len(row) != len(headers) for row in matrix):
         raise ValueError("Every row must match the header width")
     setup = load_setup(setup_bytes, headers)
-    rows = map_rows([dict(zip(headers, row)) for row in matrix[1:]], setup["mapping"], setup["conversions"])
+    rows = map_rows([dict(zip(headers, row)) for row in matrix[1:]], setup["mapping"], setup["conversions"],
+                    locale=setup["settings"].get("locale", "en"))
     settings = dict(setup["settings"])
     tax = settings.pop("seller_tax", None)
     if tax is not None and "transaction_tax_rate" not in rows[0]:
@@ -92,3 +93,4 @@ def main():
     block.value = values
     block.column_width = 24
     # Deliberately do not save, overwrite sources, or publish marketplace prices.
+

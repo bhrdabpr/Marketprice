@@ -27,7 +27,7 @@ def approved_changes(result, selections, *, expected_snapshot, fee_rules_confirm
         if r["row"] in rows:
             raise ValueError("Choose only one margin scenario per source row")
         rows.add(r["row"])
-        if not r.get("decision_ready") or r["action"] not in {
+        if r.get("cost_confidence") != "CONFIRMED_INPUTS" or not r.get("decision_ready") or r["action"] not in {
             "INCREASE",
             "REVIEW_DECREASE",
             "KEEP",
@@ -51,3 +51,4 @@ def approved_changes(result, selections, *, expected_snapshot, fee_rules_confirm
             }
         )
     return updates
+

@@ -29,7 +29,7 @@ def review_campaigns(
         base.update(
             buy_box_prediction="NOT_PREDICTED", evidence_status="MISSING", review="ADD_COMPARABLE_OFFER"
         )
-        if not offer.get("decision_ready") or not offer.get("safe"):
+        if offer.get("cost_confidence") != "CONFIRMED_INPUTS" or not offer.get("decision_ready") or not offer.get("safe"):
             reviewed.append({**base, "review": "CONFIRM_COSTS_OR_MARGIN"})
             continue
         candidates = indexed.get((str(offer.get("sku", "")), str(offer.get("marketplace", ""))), [])
@@ -100,3 +100,4 @@ def review_campaigns(
             }
         )
     return reviewed
+
