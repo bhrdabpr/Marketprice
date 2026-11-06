@@ -11,6 +11,18 @@ from .precision import financial
 
 DIGITS = str.maketrans("0123456789,.%", "۰۱۲۳۴۵۶۷۸۹٬٫٪")
 MONEY_FIELDS = set(FIXED_FIELDS) | {
+    "capped_shipping", "capped_processing",
+    'historical_net_unit_cost',
+    'replacement_net_unit_cost',
+    'replacement_cost_change',
+    'replacement_margin_floor',
+    'scenario_price',
+    'historical_contribution',
+    'baseline_total_contribution',
+    'scenario_unit_contribution',
+    'additional_campaign_spend',
+    'contribution_at_baseline_volume',
+
     "capital_base", "additional_capital_cost", "contribution_before_delay", "contribution_after_delay",
     "competitor_delivered_price",
     "delivered_price_gap",
@@ -63,6 +75,19 @@ MONEY_FIELDS = set(FIXED_FIELDS) | {
     "expected_payout",
     "paid",
     "difference",
+    "summary_credit",
+    "detail_credit",
+    "summary_debit_including_tax",
+    "detail_debit_including_tax",
+    "invoice_payable",
+    "recomputed_payable",
+    "taxable_base",
+    "invoice_tax",
+    "label_rate_expected_tax",
+    "difference_from_label",
+    "sale",
+    "fees_before_unallocated_tax",
+    "net_before_unallocated_tax_and_purchase_cost",
     "actual_discount",
     "requested_discount",
     "profit_change",
@@ -71,6 +96,62 @@ MONEY_FIELDS = set(FIXED_FIELDS) | {
     "fee_tax_credit",
 }
 EXTRA_LABELS = {
+    "price_band": "جایگاه قیمت در گروه",
+    "sales_band": "سرعت فروش در گروه",
+    "units_per_day": "تعداد فروش روزانه",
+    "units": "تعداد فروش دوره",
+    "previous_units": "تعداد فروش دوره قبل",
+    "days": "روزهای دوره",
+    "trend": "روند فروش",
+    "margin_risk": "وضعیت حاشیه سود",
+    "growth_rate": "رشد فروش",
+    "capped_shipping": "ارسال درصدی با سقف",
+    "capped_processing": "پردازش درصدی با سقف",
+    "summary_credit": "جمع بستانکار در خلاصه",
+    "detail_credit": "جمع بستانکار ردیف‌های جزئی",
+    "summary_debit_including_tax": "جمع بدهکار خلاصه با مالیات",
+    "detail_debit_including_tax": "جمع بدهکار ردیف‌های جزئی با مالیات",
+    "invoice_payable": "مبلغ قابل پرداخت صورتحساب",
+    "recomputed_payable": "مبلغ قابل پرداخت بازسازی‌شده",
+    "taxable_base": "مبنای مشمول مالیات",
+    "invoice_tax": "مالیات ثبت‌شده در صورتحساب",
+    "label_rate_percent": "نرخ نوشته‌شده در عنوان",
+    "label_rate_expected_tax": "مالیات بر اساس نرخ عنوان",
+    "observed_exact_rate_percent": "نرخ منطبق با مبلغ",
+    "observed_method": "روش منطبق با مبلغ",
+    "label_mismatch": "عدم تطابق عنوان و مبلغ",
+    "difference_from_label": "اختلاف با نرخ عنوان",
+    "charge": "عنوان هزینه",
+    "observations": "تعداد مشاهده",
+    "observed_rate": "نرخ مشاهده‌شده",
+    "basis": "مبنای نرخ",
+    "sale": "مبلغ فروش",
+    "fees_before_unallocated_tax": "هزینه سفارش پیش از مالیات تخصیص‌نیافته",
+    "fee_rate": "نرخ هزینه سفارش پیش از مالیات تخصیص‌نیافته",
+    "net_before_unallocated_tax_and_purchase_cost": "خالص پیش از مالیات تخصیص‌نیافته و بهای خرید",
+    "fee_rows": "تعداد ردیف هزینه سفارش",
+    "reason": "علت تخصیص‌نیافتن",
+    "statement_id": "شناسه صورتحساب در این بررسی",
+
+    'historical_net_unit_cost': 'بهای خرید خالص قبلی',
+    'replacement_net_unit_cost': 'بهای خرید خالص مجدد',
+    'replacement_cost_change': 'تغییر بهای خرید',
+    'replacement_margin_floor': 'کف قیمت با بهای خرید مجدد',
+    'replacement_constraint': 'وضعیت محدودیت قیمت',
+    'quote_source': 'مرجع قیمت تأمین\u200cکننده',
+    'quoted_on': 'تاریخ قیمت',
+    'valid_until': 'اعتبار تا تاریخ',
+    'replacement_review': 'نتیجه بررسی خرید مجدد',
+    'scenario_price': 'قیمت سناریو',
+    'historical_contribution': 'سود با بهای خرید قبلی',
+    'baseline_units': 'تعداد فروش مبنا',
+    'baseline_total_contribution': 'سود کل مبنا',
+    'scenario_unit_contribution': 'سود هر واحد سناریو',
+    'additional_campaign_spend': 'هزینه اضافی کل کمپین',
+    'contribution_at_baseline_volume': 'سود سناریو با تعداد مبنا',
+    'required_units': 'تعداد فروش لازم',
+    'source_snapshot': 'اثر انگشت محاسبه',
+
     "capital_base": "مبنای سرمایه (خرید خالص)",
     "additional_capital_cost": "هزینه اضافی سرمایه",
     "contribution_before_delay": "سود پیش از تأخیر اضافی",
@@ -173,6 +254,30 @@ EXTRA_LABELS.update(
 )
 
 VALUES = {
+    "Lower price": "قیمت پایین‌تر",
+    "Higher price": "قیمت بالاتر",
+    "Slower sales": "فروش کندتر",
+    "Faster sales": "فروش سریع‌تر",
+    "At benchmark": "برابر میانه گروه",
+    "Growing": "رو به رشد",
+    "Declining": "رو به کاهش",
+    "Stable": "ثابت",
+    "New sales": "فروش جدید از مبنای صفر",
+    "Unknown": "نامشخص",
+    "Loss": "زیان",
+    "Below target": "زیر حد سود",
+    "At or above target": "در حد سود یا بالاتر",
+    'ADD_QUOTE': 'قیمت خرید مجدد را وارد کنید',
+    'FIX_QUOTE': 'قیمت خرید مجدد را اصلاح کنید',
+    'FLOOR_ONLY': 'فقط کف قیمت؛ فروش فعلی وارد نشده',
+    'LOSS_AT_REPLACEMENT': 'زیان با بهای خرید مجدد',
+    'NONNEGATIVE_AT_REPLACEMENT': 'سود غیرمنفی با بهای خرید مجدد',
+    'WITHIN_CONFIGURED_CONSTRAINTS': 'در محدوده قواعد واردشده',
+    'PRICE_CONSTRAINT_CONFLICT': 'تعارض با محدودیت قیمت',
+    'NO_FEASIBLE_REPLACEMENT_FLOOR': 'کف قیمت ممکن یافت نشد',
+    'REQUIREMENT_NOT_FORECAST': 'تعداد لازم؛ نه پیش\u200cبینی فروش',
+    'NO_POSITIVE_COMPARISON': 'مقایسه سود مثبت ممکن نیست',
+
     "NOT_PREDICTED": "پیش‌بینی نشده",
     "ADD_COMPARABLE_OFFER": "پیشنهاد همسان و معتبر اضافه کنید",
     "CONFIRM_COSTS_OR_MARGIN": "هزینه‌ها یا حاشیه سود نیازمند تأیید است",
@@ -251,13 +356,13 @@ def display_value(
             number *= Decimal(10) if display_currency == "IRR" else Decimal(".1")
         if (
             "margin" in field
-            and field != "margin_floor"
+            and field not in MONEY_FIELDS
             or field.endswith("_rate")
             or field
             in {"suggested_discount", "max_discount", "platform_share", "max_break_even_discount", "markup"}
         ):
             text = f"{number * 100:,.2f}%"
-        elif field == "required_sales_multiplier":
+        elif field in {"required_sales_multiplier", "units_per_day"}:
             text = f"{number:,.4f}".rstrip("0").rstrip(".")
         else:
             text = format(number, ",f")

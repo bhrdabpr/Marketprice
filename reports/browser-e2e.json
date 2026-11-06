@@ -13,7 +13,11 @@
     "Assumptions",
     "Marketplace_Rules",
     "Audit_Trail",
-    "Data_Dictionary"
+    "Data_Dictionary",
+    "Price_Analysis",
+    "Seasonal_Campaigns",
+    "Cost_Confidence",
+    "Action_List"
   ],
   "golden_price": 117.65,
   "invalid_product_retained": true

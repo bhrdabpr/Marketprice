@@ -14,19 +14,23 @@ from marketprice.channels import CHANNELS, channel_label, excluded_columns, matc
 from marketprice.competition import review_campaigns
 from marketprice.config import load_profiles
 from marketprice.contracts import load_contract
+from marketprice.cost_impact import render_cost_impact
 from marketprice.flexible import calculate_catalog
 from marketprice.i18n import translate
 from marketprice.importing import IGNORE, UNMAPPED, map_rows, suggest_mapping
 from marketprice.io import json_default, pricing_summary_csv, read_upload, workbook_bytes, workbook_sheets
 from marketprice.models import CURRENCIES, Product
 from marketprice.operations_ui import render_operations
+from marketprice.opportunity_ui import render_opportunity
 from marketprice.presentation import field_label, filter_results
 from marketprice.presentation import preview as localized_preview
+from marketprice.replacement_ui import render_replacement
 from marketprice.samples import sample_rows
 from marketprice.settlement_scenarios import review_delay
 from marketprice.templates import load_setup, save_setup
 from marketprice.validation import number
 from marketprice.workbook_review import price_dependent_costs
+from marketprice.workspace_ui import SECTIONS, hero, overview, section_label
 
 
 def t(text):
@@ -43,32 +47,66 @@ def preview(records):
     )
 
 
+def clear_business_session():
+    """Reset uploads/results before rendering, retaining display and navigation preferences."""
+    preferences = {"ui_language", "display_currency", "display_currency__en", "display_currency__fa",
+                   "digits_en", "digits_fa", "workspace", "workspace__en", "workspace__fa"}
+    next_epoch = st.session_state.get("session_epoch", 0) + 1
+    for key in list(st.session_state):
+        if key not in preferences:
+            del st.session_state[key]
+    st.session_state["session_epoch"] = next_epoch
+    st.session_state["sales_map_demo"] = False
+    st.session_state["sales_map_regression"] = False
+    st.session_state["sales_map_days"] = 30
+
+
+def remember_selection(key, widget_key):
+    st.session_state[key] = st.session_state[widget_key]
+
+
 def select_localized(title, options, *, key, format_func=None, index=0, container=None, **kwargs):
     """Refresh translated selected labels while retaining canonical business choices."""
     options = list(options)
     widget_key = key + "__" + language
-    previous = st.session_state.get(widget_key, st.session_state.get(key, options[index]))
+    previous = st.session_state.get(key, options[index])
     if previous not in options:
         if UNMAPPED in options and previous in Product.model_fields:
             options.append(previous)
         else:
             previous = options[index]
+    st.session_state[widget_key] = previous
     value = (container or st).selectbox(
-        title, options, index=options.index(previous), key=widget_key, format_func=format_func, **kwargs
+        title, options, key=widget_key, format_func=format_func,
+        on_change=remember_selection, args=(key, widget_key), **kwargs
     )
     st.session_state[key] = value
     return value
 
 
+# Apply reviewed setup defaults before widgets render; subsequent edits remain authoritative.
+for setting, value in st.session_state.pop("pending_setup_settings", {}).items():
+    st.session_state[setting] = value
+
+
 st.set_page_config(page_title="MarketPrice • pricing you can explain", page_icon="◈", layout="wide")
-language = st.radio(
+st.sidebar.markdown('<div class="mp-logo"><span>◈</span> MarketPrice<small>PRICE · PROFIT · GROWTH</small></div>', unsafe_allow_html=True)
+language = st.sidebar.radio(
     "Language / زبان",
     ["en", "fa"],
     format_func=lambda value: "English" if value == "en" else "فارسی",
     horizontal=True,
     key="ui_language",
 )
-display_cols = st.columns(2)
+workspace_key = "workspace__" + language
+st.session_state[workspace_key] = st.session_state.get("workspace", "Pricing (قیمت گذاری)")
+workspace = st.sidebar.radio(
+    "فضای کار" if language == "fa" else "Workspace",
+    list(SECTIONS), index=1,
+    format_func=lambda value: section_label(value, language),
+    key=workspace_key,
+    on_change=remember_selection, args=("workspace", workspace_key),
+)
 display_currency = select_localized(
     t("Display currency"),
     ["original", "IRR", "TOMAN"],
@@ -78,43 +116,34 @@ display_currency = select_localized(
         else ({"IRR": "ریال", "TOMAN": "تومان"}[value] if language == "fa" else value)
     ),
     key="display_currency",
-    container=display_cols[0],
+    container=st.sidebar,
 )
-persian_digits = display_cols[1].checkbox(
+persian_digits = st.sidebar.checkbox(
     t("Use Persian digits"), value=language == "fa", key="digits_" + language
 )
-st.caption(
-    t(
-        "Display units only; input units and exported amounts remain unchanged. 1 toman = 10 rial. Other currencies are never converted."
-    )
-)
+with st.sidebar.expander("راهنمای واحدها" if language == "fa" else "Display units help"):
+    st.caption(t("Display units only; input units and exported amounts remain unchanged. 1 toman = 10 rial. Other currencies are never converted."))
 direction = "rtl" if language == "fa" else "ltr"
 st.markdown(
-    f"<style>[data-testid='stMain'], [data-testid='stSidebar'] {{direction:{direction};text-align:{'right' if language == 'fa' else 'left'};font-family:Tahoma,'Segoe UI',Arial,sans-serif;}} h1,h2,h3,p,label,button,input {{font-family:Tahoma,'Segoe UI',Arial,sans-serif;}} [data-testid='stDataFrame'] {{direction:ltr;}} input {{text-align:{'right' if language == 'fa' else 'left'};}}</style>",
+    f"<style>[data-testid='stAppViewContainer'] {{direction:ltr;}} [data-testid='stMain'], [data-testid='stSidebar'] {{direction:{direction};text-align:{'right' if language == 'fa' else 'left'};font-family:Tahoma,'Segoe UI',Arial,sans-serif;}} h1,h2,h3,p,label,button,input {{font-family:Tahoma,'Segoe UI',Arial,sans-serif;}} [data-testid='stDataFrame'] {{direction:ltr;}} input {{text-align:start;unicode-bidi:plaintext;}} [data-testid='stNumberInput'] input, [data-testid='stTextInput'] input {{direction:ltr;text-align:left;}} .st-key-store_name input {{direction:{direction};text-align:start;}} [data-testid='stJson'], pre, code {{direction:ltr;text-align:left;}}</style>",
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<style>" + (Path(__file__).parent / "marketprice" / "ui.css").read_text() + "</style>",
+    "<style>" + (Path(__file__).parent / "marketprice" / "ui.css").read_text() + (Path(__file__).parent / "marketprice" / "workspace.css").read_text() + "</style>",
     unsafe_allow_html=True,
 )
-st.title("MarketPrice")
-st.caption(t("Know your price floor. Test your campaign. Keep the calculation trail."))
-st.info(
-    t(
-        "Example marketplace profiles • Enter your own verified fees and tax rules • All calculations run on this server"
-    )
-)
-if st.button(t("Clear session data"), key="clear_session"):
-    st.session_state.clear()
-    st.rerun()
-with st.expander(t("Specialist tools")):
-    workspace = st.radio(
-        t("Workspace (بخش برنامه)"),
-        ["Pricing (قیمت گذاری)", "Actual profit (سود واقعی)"],
-        horizontal=True,
-        format_func=t,
-        key="workspace",
-    )
+hero(workspace, language)
+with st.sidebar, st.expander("نشست" if language == "fa" else "Session"):
+    st.button(t("Clear session data"), key="clear_session", on_click=clear_business_session)
+if workspace == "Overview":
+    overview(language)
+    st.stop()
+if workspace == "Cost impact":
+    render_cost_impact(language)
+    st.stop()
+if workspace == "Sales map":
+    render_opportunity(language, display_currency, persian_digits)
+    st.stop()
 if workspace == "Actual profit (سود واقعی)":
     render_operations(language, display_currency, persian_digits)
     st.stop()
@@ -195,7 +224,7 @@ st.columns([1, 2, 1])[1].download_button(
     on_click="ignore",
 )
 upload = st.file_uploader(
-    t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"], key="catalog_upload", max_upload_size=50
+    t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"], key=f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}", max_upload_size=50
 )
 st.caption(
     t(
@@ -240,29 +269,36 @@ if upload is not None:
             st.session_state["import_key"] = import_key
         initial = st.session_state["import_rows"]
         source_market = selected
-        setup_file = st.file_uploader(t("Reuse saved setup (.json)"), type=["json"], key="setup")
+        setup_file = st.file_uploader(t("Reuse saved setup (.json)"), type=["json"], key=f"setup__session_{st.session_state.get('session_epoch', 0)}")
         setup = load_setup(setup_file.getvalue(), list(initial[0])) if setup_file else None
         if setup:
             saved = setup["settings"]
-            currency = saved.get("currency", currency)
-            target = saved.get("target_margin", target)
-            margins_text = saved.get("extra_margins", margins_text)
-            discount_text = saved.get("campaign_discounts", discount_text)
-            kind = saved.get("discount_kind", kind)
-            share = saved.get("platform_share", share)
             saved_market = saved.get("marketplace", selected)
             if saved_market == "generic":
                 saved_market = "custom"
-            locale = saved.get("locale", locale)
             if source_market != saved_market:
                 raise ValueError(
                     t("Saved setup belongs to another marketplace; select its sales channel above.")
                 )
             st.info(
                 t(
-                    f"Saved settings active: {currency}, target {target}, marketplace {selected}, format {locale}. Remove setup to use sidebar settings."
+                    "Saved setup loaded. Current sidebar values are used; you can edit them."
                 )
             )
+            assert setup_file is not None
+            setup_digest = hashlib.sha256(setup_file.getvalue()).hexdigest()
+            if st.session_state.get("applied_setup") != setup_digest:
+                setting_keys = {"currency": "input_currency", "target_margin": "target_margin",
+                                "extra_margins": "extra_margins", "campaign_discounts": "campaign_discounts",
+                                "discount_kind": "discount_kind", "platform_share": "platform_share",
+                                "locale": "input_locale"}
+                st.session_state["pending_setup_settings"] = {
+                    key: saved[source] for source, key in setting_keys.items() if source in saved
+                }
+                st.session_state["applied_setup"] = setup_digest
+                st.rerun()
+        else:
+            st.session_state.pop("applied_setup", None)
         suggested = setup["mapping"] if setup else suggest_mapping(list(initial[0]), source_market)
         suggested = scoped_mapping(list(initial[0]), selected, suggested)
         suggested = {k: IGNORE if v == "quantity" else v for k, v in suggested.items()}
@@ -276,7 +312,7 @@ if upload is not None:
             with st.expander(t("Details excluded from pricing")):
                 st.write(", ".join(ignored_details))
                 review_ignored = st.checkbox(t("Review these ignored columns"), key="review_ignored")
-        advanced_matching = st.checkbox(t("Advanced matching fields"), value=False)
+        advanced_matching = st.checkbox(t("Advanced matching fields"), value=False, key="advanced_matching")
         st.caption(t("Common product columns are shown first; advanced fields remain available."))
         setup_key = hashlib.sha256(setup_file.getvalue()).hexdigest()[:8] if setup_file else ""
         with st.expander(t("Column mapping"), expanded=True):
@@ -434,10 +470,10 @@ if upload is not None:
                         "cost_states": cost_states,
                     },
                 ),
-                "marketprice_setup.json",
+                "marketprice_setup.json", on_click="ignore",
             )
         contract_file = st.file_uploader(
-            t("Optional dated seller rule bundle (.json)"), type=["json"], key="contract"
+            t("Optional dated seller rule bundle (.json)"), type=["json"], key=f"contract__session_{st.session_state.get('session_epoch', 0)}"
         )
         contract_evidence = None
         if contract_file:
@@ -794,7 +830,7 @@ if upload is not None:
                     on_click="ignore",
                 )
                 evidence_file = st.file_uploader(
-                    t("Comparable competitor offers (.csv)"), type=["csv"], key="competitor_evidence"
+                    t("Comparable competitor offers (.csv)"), type=["csv"], key=f"competitor_evidence__session_{st.session_state.get('session_epoch', 0)}"
                 )
                 observations = (
                     read_upload(evidence_file.getvalue(), evidence_file.name, preserve_headers=True)
@@ -848,6 +884,8 @@ if upload is not None:
                     preview(visible_result["Seasonal_Campaigns"][:1000]),
                     hide_index=True,
                 )
+            render_replacement(result, language=language, display_currency=display_currency,
+                               persian_digits=persian_digits)
             with st.expander(t("Review price changes (تأیید تغییر قیمت)")):
                 candidates = {
                     (r["row"], str(r["target_margin"])): r
@@ -873,7 +911,7 @@ if upload is not None:
                     st.download_button(
                         t("Download approved change manifest"),
                         json.dumps(changes, default=json_default, ensure_ascii=False, indent=2),
-                        "marketprice_approved.json",
+                        "marketprice_approved.json", on_click="ignore",
                     )
                     st.caption(
                         t(
@@ -900,15 +938,10 @@ if upload is not None:
         st.session_state.pop("result", None)
         st.session_state.pop("download", None)
 else:
-    st.subheader(t("From workbook to defensible prices"))
-    a, b, c = st.columns(3)
-    a.markdown(t("**1 · Validate**\n\nMap columns and catch unknown costs before pricing."))
-    b.markdown(t("**2 · Calculate**\n\nSeparate contribution, collected tax, and seller expenses."))
-    c.markdown(
-        t("**3 · Decide**\n\nCompare margin targets and funded campaigns, then export the audit trail.")
-    )
-    st.markdown(
+    st.markdown('<div class="mp-steps"><span>01 · '+("ورود فایل" if language == "fa" else "Import")+'</span><i>→</i><span>02 · '+("بررسی هزینه" if language == "fa" else "Review costs")+'</span><i>→</i><span>03 · '+("مقایسه و تصمیم" if language == "fa" else "Compare & decide")+'</span></div>', unsafe_allow_html=True)
+    with st.expander("حریم خصوصی و راهنما" if language == "fa" else "Privacy & help"):
+        st.markdown(
         t(
             "**Privacy:** uploads and results stay in server session memory. Reset the session to clear them. Local launch binds to localhost."
         )
-    )
+        )

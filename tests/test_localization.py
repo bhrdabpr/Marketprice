@@ -106,7 +106,7 @@ def test_language_switch_retains_financial_settings_and_renders_both_workspaces(
     assert app.selectbox(key="sales_channel__fa").value == "digikala"
     assert app.selectbox(key="sales_channel__fa").label == "کالاها را کجا می‌فروشید؟"
     assert app.checkbox(key="digits_fa").value
-    app.radio(key="workspace").set_value("Actual profit (سود واقعی)").run()
+    app.radio[1].set_value("Actual profit (سود واقعی)").run()
     next(b for b in app.button if b.label == "امتحان با داده نمونه").click().run()
     assert not app.exception
     assert any(h.value == "مقایسه بازارها" for h in app.subheader)
@@ -125,3 +125,23 @@ def test_primary_actions_have_complete_translations():
         "Automatically excluded columns",
     ]:
         assert translate(text, "fa") != text
+
+
+def test_roundtrip_languages_use_latest_canonical_choices():
+    app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.selectbox(key="sales_channel__en").select("digikala").run()
+    app.selectbox(key="display_currency__en").select("IRR").run()
+    app.radio(key="ui_language").set_value("fa").run()
+    app.selectbox(key="sales_channel__fa").select("snapp_shop").run()
+    app.selectbox(key="display_currency__fa").select("TOMAN").run()
+    app.radio(key="ui_language").set_value("en").run()
+    assert not app.exception
+    assert app.selectbox(key="sales_channel__en").value == "snapp_shop"
+    assert app.selectbox(key="display_currency__en").value == "TOMAN"
+    app.radio[1].set_value("Actual profit (سود واقعی)").run()
+    app.checkbox(key="operations_confirmed").check().run()
+    app.button(key="operations_demo_button").click().run()
+    app.radio(key="ui_language").set_value("fa").run()
+    assert app.checkbox(key="operations_confirmed").value is True
+    assert "operations_result" in app.session_state
+    assert not app.exception

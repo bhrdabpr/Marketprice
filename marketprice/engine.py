@@ -10,7 +10,7 @@ from .precision import financial
 D = Decimal
 ZERO = D(0)
 MAX_PRICE = D("1e18")
-VERSION = "1.7.0"
+VERSION = "1.8.0"
 
 
 class CalculationError(ValueError):
@@ -36,6 +36,8 @@ class Ledger:
     profit: Decimal
     margin: Decimal | None
     markup: Decimal | None
+    capped_shipping: Decimal
+    capped_processing: Decimal
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -48,6 +50,21 @@ def round_up(value: Decimal, increment: Decimal) -> Decimal:
 
 def tiers_for(p: Product, rule: Profile):
     return rule.category_tiers.get(p.category, rule.tiers)
+
+
+def category_charges(p: Product, rule: Profile):
+    charges = rule.category_charges.get(p.category)
+    if rule.require_category_charges and charges is None:
+        raise CalculationError("MISSING_CATEGORY_CHARGES")
+    if charges is None:
+        return ()
+    if (charges.shipping is not None and p.shipping) or (charges.processing is not None and p.fulfillment):
+        raise CalculationError("CATEGORY_CHARGE_DUPLICATES_FIXED_COST")
+    return tuple(
+        (name, charge)
+        for name, charge in (("shipping", charges.shipping), ("processing", charges.processing))
+        if charge is not None
+    )
 
 
 def commission(base: Decimal, p: Product, rule: Profile, campaign: bool) -> Decimal:
@@ -105,14 +122,19 @@ def evaluate(
         comm = commission(bases[rule.commission_base], p, rule, campaign)
         payment = bases[rule.payment_base] * p.payment_rate + p.payment_fixed
         other = bases[rule.other_base] * p.other_rate
-        fee_tax = (comm + payment) * p.fee_tax_rate
+        charges = {
+            name: (min(bases[charge.base] * charge.rate, charge.maximum), charge.taxable)
+            for name, charge in category_charges(p, rule)
+        }
+        shipping, processing = (charges.get(name, (ZERO, False))[0] for name in ("shipping", "processing"))
+        fee_tax = (comm + payment + sum(amount for amount, taxable in charges.values() if taxable)) * p.fee_tax_rate
         credit = fee_tax if p.fee_tax_recoverable else D(0)
         cogs = p.purchase_cost - p.input_tax_credit
         fixed = sum((getattr(p, f) for f in FIXED_FIELDS), D(0))
         if campaign:
             fixed += rule.campaign_fixed_fee
         transaction_tax = revenue * p.transaction_tax_rate
-        cost = cogs + fixed + comm + payment + other + fee_tax - credit + transaction_tax
+        cost = cogs + fixed + comm + payment + other + shipping + processing + fee_tax - credit + transaction_tax
         profit = revenue - cost
         return Ledger(
             price,
@@ -132,6 +154,8 @@ def evaluate(
             profit,
             profit / revenue if revenue else None,
             profit / cost if cost else None,
+            shipping,
+            processing,
         )
 
 
@@ -156,16 +180,18 @@ def floor_price(
     with localcontext() as ctx:
         ctx.prec = 50
         k = 1 / (1 + p.tax_rate) if p.tax_mode == "inclusive" else D(1)
-        base_k = {"net": k, "gross": k * (1 + p.tax_rate), "list": D(1), "settlement": k * (1 + p.tax_rate)}[
-            rule.commission_base
-        ]
+        slopes = {"net": k, "gross": k * (1 + p.tax_rate), "list": D(1), "settlement": k * (1 + p.tax_rate)}
+        base_k = slopes[rule.commission_base]
         fixed_commission_base = rule.commission_base == "list" and list_price is not None
         bounds = [D(0)] + (
             []
             if fixed_commission_base
             else [t.up_to / base_k for t in tiers_for(p, rule) if t.up_to is not None]
         )
-        bounds.append(D("1e18"))
+        for _, charge in category_charges(p, rule):
+            if charge.rate and not (charge.base == "list" and list_price is not None):
+                bounds.append(charge.maximum / (charge.rate * slopes[charge.base]))
+        bounds = sorted({D(0), D("1e18"), *(b for b in bounds if 0 < b < D("1e18"))})
 
         def residual(price):
             ledger = evaluate(p, rule, price, campaign=campaign, list_price=list_price)

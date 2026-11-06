@@ -1,6 +1,13 @@
-/* Calm financial workspace. Local fonts, no trackers or remote design dependencies. */
+/* Local decision workspace; reduced motion respected. */
 :root{--mp-bg:#f3f5f7;--mp-card:#fff;--mp-ink:#101828;--mp-blue:#2459d3;--mp-border:#dce2ea;--mp-muted:#475467;--mp-radius:14px}
 .stApp{background:var(--mp-bg);color:var(--mp-ink)}
+.mp-brand{font-size:14px;letter-spacing:.17em;font-weight:800;color:#245de5;margin-top:1.5rem}
+.mp-brand span{font-size:10px;color:#6b7485;margin-inline-start:16px;font-weight:500}
+:is(.st-key-workspace__en,.st-key-workspace__fa){border-block:1px solid #dce2ea;padding:14px 0;margin:1rem 0 1.5rem}
+:is(.st-key-workspace__en,.st-key-workspace__fa) [role="radiogroup"]{gap:12px}
+:is(.st-key-workspace__en,.st-key-workspace__fa) [role="radiogroup"] label{background:white;border:1px solid #dce2ea;padding:10px 18px;border-radius:9px}
+:is(.st-key-workspace__en,.st-key-workspace__fa) [role="radiogroup"] label:has(input:checked){background:#e9efff;border-color:#aac1fa;color:#194cb8}
+[data-testid="stFileUploader"]{padding:18px;background:#fff;border:1px dashed #b8c6de;border-radius:12px}
 [data-testid="stMainBlockContainer"]{max-width:1440px;padding-top:3rem;padding-bottom:4rem}
 [data-testid="stSidebar"]{background:#eaf0f6;border-inline-end:1px solid var(--mp-border)}
 h1{letter-spacing:-.045em;font-weight:700!important}h2,h3{letter-spacing:-.015em}
@@ -8,10 +15,12 @@ h1{letter-spacing:-.045em;font-weight:700!important}h2,h3{letter-spacing:-.015em
 [data-testid="stMetric"]{padding:18px;border-radius:var(--mp-radius);background:var(--mp-card);border:1px solid var(--mp-border)}
 [data-testid="stMetricLabel"] p{white-space:normal!important;line-height:1.4}
 [data-testid="stDataFrame"]{border:1px solid var(--mp-border);border-radius:12px;overflow:hidden}
-.stButton,.stDownloadButton{display:flex;justify-content:center}
-.stButton button,.stDownloadButton button{background:var(--mp-blue);color:white;border:1px solid transparent;border-radius:10px;min-height:44px;padding:.55rem 1.1rem;transition:background .18s ease,box-shadow .18s ease,transform .18s ease}
+[data-testid="stVegaLiteChart"], [data-testid="stVegaLiteChart"] svg{direction:ltr;text-align:left}
+.stButton button,.stDownloadButton button{background:white;color:#233249;border:1px solid #d4dce8;border-radius:8px;min-height:44px;padding:.55rem 1.1rem;transition:background .18s ease,border-color .18s ease}
 .stButton button p,.stDownloadButton button p{color:inherit}
-.stButton button:hover,.stDownloadButton button:hover{background:#1948b4;box-shadow:0 4px 12px #2459d31a;transform:translateY(-1px)}
+.stButton button:hover,.stDownloadButton button:hover{background:#edf2ff;border-color:#8fabed;color:#174cbf}
+.stButton button[kind="primary"]{background:#245de5;color:white;border-color:#245de5}
+.st-key-clear_session button{color:#a43141;background:transparent}
 button:focus-visible,input:focus-visible{outline:3px solid #668de8!important;outline-offset:3px}
 button:disabled{opacity:.55;transform:none!important}
 [data-testid="stTabs"] [role="tab"]{min-height:44px;padding-inline:14px}

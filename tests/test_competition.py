@@ -78,3 +78,14 @@ def test_missing_evidence_and_unconfirmed_costs_remain_visible():
     r = result()
     r["Campaign_Simulations"][0]["decision_ready"] = False
     assert review_campaigns(r, [observation()], now=NOW)[0]["review"] == "CONFIRM_COSTS_OR_MARGIN"
+
+
+def test_competitor_gap_does_not_depend_on_callers_decimal_precision():
+    from decimal import localcontext
+
+    source = result()
+    source["Campaign_Simulations"][0]["campaign_price"] = Decimal(123456789012345678)
+    observed = observation(competitor_delivered_price="123456789012345690", our_customer_delivery_charge="15")
+    with localcontext() as ctx:
+        ctx.prec = 8
+        assert review_campaigns(source, [observed], now=NOW)[0]["delivered_price_gap"] == 3

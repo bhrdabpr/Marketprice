@@ -171,7 +171,7 @@ def test_api_reconciliation_returns_source_errors_without_fabricating_profit():
 
 def test_actual_profit_demo_renders_without_upload_or_exception():
     app = AppTest.from_file(Path("app.py").resolve()).run()
-    app.radio(key="workspace").set_value("Actual profit (سود واقعی)").run()
+    app.radio[1].set_value("Actual profit (سود واقعی)").run()
     demo = next(b for b in app.button if b.label == "Try synthetic demo")
     demo.click().run()
     assert not app.exception

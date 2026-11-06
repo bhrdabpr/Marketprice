@@ -80,4 +80,5 @@ def test_app_initial():
 
     app = AppTest.from_file("../app.py").run(timeout=30)
     assert not app.exception
-    assert app.title[0].value == "MarketPrice"
+    assert app.radio[1].value == "Pricing (قیمت گذاری)"
+    assert any("Pricing &amp; campaigns" in item.value for item in app.markdown)

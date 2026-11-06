@@ -85,8 +85,8 @@ def seasonal_offers(
         "platform_share": platform_share,
         "baseline_unit_profit": evaluate(p, rule, p.current_price).profit,
         "required_sales_multiplier": (
-            max(Decimal(0), evaluate(p, rule, p.current_price).profit) / offer["profit"]
-            if offer["profit"] > 0
+            evaluate(p, rule, p.current_price).profit / offer["profit"]
+            if offer["profit"] > 0 and evaluate(p, rule, p.current_price).profit > 0
             else None
         ),
         "volume_note": "Units required to preserve baseline contribution; not predicted demand. Excludes campaign-wide fixed spend.",

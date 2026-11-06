@@ -130,6 +130,18 @@ class Tier(StrictModel):
     rate: Rate
 
 
+class CappedCharge(StrictModel):
+    rate: Rate
+    maximum: Money
+    base: Literal["net", "gross", "list", "settlement"]
+    taxable: bool
+
+
+class CategoryCharges(StrictModel):
+    shipping: CappedCharge | None = None
+    processing: CappedCharge | None = None
+
+
 class Profile(StrictModel):
     id: str
     version: str
@@ -142,6 +154,8 @@ class Profile(StrictModel):
     subsidy_taxable: bool
     tiers: tuple[Tier, ...] = ()
     category_tiers: dict[str, tuple[Tier, ...]] = Field(default_factory=dict)
+    category_charges: dict[str, CategoryCharges] = Field(default_factory=dict)
+    require_category_charges: bool = False
     campaign_commission_rate: Rate | None = None
     campaign_fixed_fee: Money
     required_fields: tuple[str, ...] = ()

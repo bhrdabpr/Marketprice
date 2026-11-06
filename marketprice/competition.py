@@ -4,9 +4,11 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from urllib.parse import urlsplit
 
+from .precision import financial
 from .validation import number
 
 
+@financial
 def review_campaigns(
     result: dict[str, list[dict]], observations: list[dict], *, now: datetime | None = None
 ) -> list[dict]:

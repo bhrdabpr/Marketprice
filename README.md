@@ -1,6 +1,6 @@
 # MarketPrice
 
-**Check your margin before changing your price.**
+**Review prices, promotions and settlement costs from your sales spreadsheet.**
 
 Turn a seller’s cost spreadsheet into explainable price floors, three margin scenarios and promotion checks. Review incomplete products individually, then export the calculation evidence.
 
@@ -18,6 +18,9 @@ MarketPrice is for a seller or accountant reviewing recurring price and discount
 | What price covers my entered costs? | Break-even and three chosen contribution-margin scenarios |
 | Can this discount preserve profit? | Unit contribution, margin limits and the sales multiplier needed to preserve baseline contribution |
 | Is this offer competitive? | Comparison against fresh, seller-supplied comparable delivered prices, with evidence and rejection reasons |
+| What do returns and slow-moving stock cost? | Estimate reverse shipping, write-offs, storage and penalties per dispatched unit |
+| Which products sell faster at different prices? | Compare observed sales velocity within a comparable group and optionally fit a descriptive trend |
+| How does the payout compare to the statement? | Review normalized transactions or a supported Digikala invoice and export reconciliation evidence |
 | Can I explain the decision? | Compact CSV, complete Excel audit and an optional campaign decision passport |
 
 A campaign requiring 1.25× sales needs 25% more units to preserve contribution under the same cost assumptions. **MarketPrice does not predict those sales.**

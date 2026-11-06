@@ -1,3 +1,11 @@
+# MarketPrice release history
+
+## 1.8.0 — 2026-11-06
+
+- Grouped pricing, financial performance, hidden costs and sales analysis into bilingual workspaces.
+- Added invoice reconciliation, replacement-cost scenarios and descriptive sales trends.
+- Fixed collapsed sidebar branding and language/session persistence.
+
 ## Post-1.7 settlement sensitivity — 2026-11-04
 
 - Added optional bilingual incremental settlement-delay cost review for current sales and campaigns, with explicit assumptions and downloadable JSON evidence.
@@ -11,8 +19,6 @@
 - Added baseline unit contribution and required sales multiplier to every simulated campaign and the main bilingual campaign table; nonpositive comparisons remain blank.
 - Added a tracked-file publication guard to CI and excluded local workbook/screenshot artifacts.
 - Reviewed public history and public repository surfaces; scope and limitations are recorded in docs/PUBLICATION_REVIEW.md.
-
-# MarketPrice release history
 
 ## 1.7.0 — 2026-11-04
 

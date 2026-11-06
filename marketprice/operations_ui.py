@@ -6,6 +6,7 @@ from pathlib import Path
 import streamlit as st
 
 from .actuals import reconcile
+from .digikala import review_digikala_invoice
 from .i18n import translate
 from .io import read_upload, workbook_bytes
 from .presentation import preview
@@ -21,14 +22,75 @@ def render_operations(language="en", display_currency="original", persian_digits
             "Use normalized transaction and dated-cost exports. Vendor-native templates are not yet certified. Amounts must exclude collected VAT; expenses are negative. Payouts are transfers, not revenue."
         )
     )
+    with st.expander(t("Digikala native invoice review"), expanded=False):
+        st.caption(
+            t(
+                "Upload the original Digikala invoice XLSX. The review reconciles the payable amount, derives rates observed in this file, and keeps charges without order keys unallocated."
+            )
+        )
+        st.info("نسبت هزینه به فروش فقط مشاهده همین فایل است. سقف ارسال و پردازش، دسته کالا و تاریخ اعتبار باید از قرارداد تعیین شوند؛ این گزارش قواعد قیمت‌گذاری را تغییر نمی‌دهد."
+                if language == "fa" else "Ratios describe this file only. Shipping/processing caps, category and effective dates require contract evidence. This report does not change pricing rules.")
+        digikala_file = st.file_uploader(
+            t("Digikala invoice XLSX"),
+            type=["xlsx"],
+            key=f"digikala_invoice__session_{st.session_state.get('session_epoch', 0)}",
+        )
+        current_digikala = digikala_file.getvalue() if digikala_file else None
+        if st.button(t("Review Digikala invoice"), disabled=digikala_file is None):
+            assert digikala_file is not None
+            try:
+                st.session_state["digikala_invoice_result"] = review_digikala_invoice(
+                    digikala_file.getvalue(), digikala_file.name
+                )
+                st.session_state["digikala_invoice_input"] = current_digikala
+            except ValueError as exc:
+                st.error(t(str(exc)))
+        if current_digikala != st.session_state.get("digikala_invoice_input"):
+            st.session_state.pop("digikala_invoice_result", None)
+        digikala_result = st.session_state.get("digikala_invoice_result")
+        if digikala_result:
+            tax_check = digikala_result["Tax_Check"][0]
+            if tax_check["label_mismatch"]:
+                st.warning(t("The invoice VAT label and the amount calculation do not match. Review Tax Check."))
+            for sheet in (
+                "Invoice_Reconciliation",
+                "Tax_Check",
+                "Observed_Rules",
+                "Order_Net_Before_Cost",
+                "Unallocated_Charges",
+                "Errors",
+            ):
+                st.subheader(t(sheet.replace("_", " ")))
+                st.dataframe(
+                    preview(
+                        digikala_result[sheet],
+                        language=language,
+                        display_currency=display_currency,
+                        persian_digits=persian_digits,
+                    ),
+                    hide_index=True,
+                )
+            st.download_button(
+                t("Download Digikala invoice evidence"),
+                workbook_bytes(digikala_result),
+                "marketprice_digikala_invoice_review.xlsx",
+                on_click="ignore",
+            )
+            st.download_button(
+                t("Download normalized Digikala transactions"),
+                workbook_bytes({"Transactions": digikala_result["Normalized_Transactions"]}),
+                "marketprice_digikala_transactions.xlsx",
+                on_click="ignore",
+            )
     samples = Path(__file__).resolve().parent.parent / "samples" / "operations"
     for filename in ("transactions.csv", "costs.csv"):
-        st.download_button(t("Sample " + filename), (samples / filename).read_bytes(), filename, key=filename)
-    transactions = st.file_uploader(t("Transactions (تراکنش ها)"), type=["csv", "xlsx"], key="transactions")
-    costs = st.file_uploader(t("Dated costs (هزینه های تاریخ دار)"), type=["csv", "xlsx"], key="costs")
-    as_of = st.date_input(t("Reporting date (تاریخ گزارش)"), value=date.today())
+        st.download_button(t("Sample " + filename), (samples / filename).read_bytes(), filename, key=filename, on_click="ignore")
+    transactions = st.file_uploader(t("Transactions (تراکنش ها)"), type=["csv", "xlsx"], key=f"transactions__session_{st.session_state.get('session_epoch', 0)}")
+    costs = st.file_uploader(t("Dated costs (هزینه های تاریخ دار)"), type=["csv", "xlsx"], key=f"costs__session_{st.session_state.get('session_epoch', 0)}")
+    as_of = st.date_input(t("Reporting date (تاریخ گزارش)"), value=date.today(), key="operations_as_of")
     confirmed = st.checkbox(
-        t("I reviewed signs, currency, VAT treatment and completeness; cost events exclude purchase COGS")
+        t("I reviewed signs, currency, VAT treatment and completeness; cost events exclude purchase COGS"),
+        key="operations_confirmed",
     )
     current = (
         transactions.getvalue() if transactions else None,
@@ -36,7 +98,7 @@ def render_operations(language="en", display_currency="original", persian_digits
         as_of,
         confirmed,
     )
-    demo = st.button(t("Try synthetic demo (نمونه آزمایشی)"))
+    demo = st.button(t("Try synthetic demo (نمونه آزمایشی)"), key="operations_demo_button")
     if demo:
         st.session_state["operations_result"] = reconcile(
             read_upload(
@@ -100,5 +162,5 @@ def render_operations(language="en", display_currency="original", persian_digits
                 hide_index=True,
             )
         st.download_button(
-            t("Download reconciliation evidence"), workbook_bytes(result), "marketprice_actuals.xlsx"
+            t("Download reconciliation evidence"), workbook_bytes(result), "marketprice_actuals.xlsx", on_click="ignore"
         )
