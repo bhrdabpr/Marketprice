@@ -1,12 +1,14 @@
 # MarketPrice
 
+[![Financial and workflow checks](https://github.com/bhrdabpr/Marketprice/actions/workflows/ci.yml/badge.svg)](https://github.com/bhrdabpr/Marketprice/actions/workflows/ci.yml)
+
 **Review prices, promotions and settlement costs from your sales spreadsheet.**
 
 Turn a seller’s cost spreadsheet into explainable price floors, three margin scenarios and promotion checks. Review incomplete products individually, then export the calculation evidence.
 
 **Local-first · English / فارسی · Excel and CSV · Open source**
 
-[Open the live app](https://marketprice-bhrdabpr.streamlit.app/) · [Try the synthetic case study](CASE_STUDY.md) · [راهنمای فارسی](UI_GUIDE.fa.md) · [Financial limits](KNOWN_LIMITATIONS.md) · [What is ready for customers?](COMMERCIAL_READINESS.md)
+[Open the live app](https://marketprice-bhrdabpr.streamlit.app/) · [Try the synthetic case study](CASE_STUDY.md) · [Five real-data workbook checks](docs/WORKBOOK_VALIDATION.md) · [راهنمای فارسی](UI_GUIDE.fa.md) · [Financial limits](KNOWN_LIMITATIONS.md) · [What is ready for customers?](COMMERCIAL_READINESS.md)
 
 The public app processes uploads on the hosting server. Use the local launcher for confidential catalogs. After an idle period the free host may ask you to wake the app.
 
