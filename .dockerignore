@@ -6,6 +6,8 @@ __pycache__
 .mypy_cache
 .ruff_cache
 reports
+build
+dist
 
 # Do not send local credentials or merchant workbooks to the Docker builder.
 .env

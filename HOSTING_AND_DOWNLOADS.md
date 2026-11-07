@@ -4,6 +4,7 @@
 
 - [Open the online demo](https://marketprice-bhrdabpr.streamlit.app/) for synthetic data. Files are processed on the hosting server. The app may sleep after inactivity and its startup time is not guaranteed.
 - A standalone Mac or Windows installer is **not available yet**. The source launchers require Python and dependency installation; they are not customer-ready installers.
+- An [experimental desktop build](desktop/README.md) is available for developers to investigate; it is unsigned and is not an installer or a supported customer download.
 - The current app has no application accounts, tenant authorization, or verified isolation boundary. Do not use the public demo for confidential seller files or advertise it as a secure multi-tenant service.
 
 ## Gates for confidential hosted use
