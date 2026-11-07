@@ -50,6 +50,12 @@ def preview(records):
     )
 
 
+@st.cache_data
+def synthetic_sample_workbook():
+    """Reuse the public sample only; never cache customer uploads or results."""
+    return workbook_bytes({"Products": sample_rows()})
+
+
 def clear_business_session():
     """Reset uploads/results before rendering, retaining display and navigation preferences."""
     preferences = {"ui_language", "display_currency", "display_currency__en", "display_currency__fa",
@@ -151,6 +157,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 hero(workspace, language)
+st.info(
+    "فایل‌ها در محل اجرای برنامه پردازش می‌شوند. برای نسخه آنلاین از داده نمونه استفاده کنید؛ "
+    "برای فایل محرمانه از اجرای محلی یا محیط خصوصی تأییدشده استفاده کنید."
+    if language == "fa"
+    else "Files are processed where the app runs. Use sample data in the online demo; "
+    "use a local or verified private deployment for confidential files."
+)
 with st.sidebar, st.expander("نشست" if language == "fa" else "Session"):
     st.button(t("Clear session data"), key="clear_session", on_click=clear_business_session)
 if workspace == "Changes":
@@ -242,7 +255,7 @@ with st.sidebar:
     st.caption(t("Analysis concerns unit prices and margins only (تحلیل قیمت و سود هر واحد)."))
 st.columns([1, 2, 1])[1].download_button(
     t("Download sample input"),
-    workbook_bytes({"Products": sample_rows()}),
+    synthetic_sample_workbook(),
     "sample_input.xlsx",
     on_click="ignore",
 )

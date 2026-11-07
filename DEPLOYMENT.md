@@ -20,7 +20,7 @@ For external access, put the container behind TLS and an authenticated reverse p
 
 ## Retention and operations
 
-Application uploads/results are kept in the user's server session memory; no application-level product database or global data cache exists. OpenPyXL may create temporary XML during workbook generation; normal successful export cleans it up, while a killed process can leave temporary files. Use private ephemeral storage and clear it on restart. Downloads persist wherever users save them. OS swap, browser caches, reverse-proxy logs and crash dumps are infrastructure responsibilities. Telemetry is disabled. Calculation code does not call external services.
+Application uploads/results are kept in the user's server session memory; no application-level product database or global data cache exists. OpenPyXL may create temporary XML during workbook generation; normal successful export cleans it up, while a killed process can leave temporary files. Use private ephemeral storage and clear it on restart. Downloads persist wherever users save them. OS swap, browser caches, reverse-proxy logs and crash dumps are infrastructure responsibilities. Local configuration disables Streamlit telemetry; a hosting provider may override settings. Calculation code does not call external services.
 
 Set a process supervisor, protect server logs, avoid logging product inputs, and run readiness/liveness checks. Restart to clear abandoned sessions. Back up versioned rule files, not transient uploads. Record your fee source and effective date before use.
 
