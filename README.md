@@ -31,6 +31,16 @@ MarketPrice is for a seller or accountant reviewing recurring price and discount
 
 A campaign requiring 1.25× sales needs 25% more units to preserve contribution under the same cost assumptions. **MarketPrice does not predict those sales.**
 
+## Screenshots
+
+These earlier captures show the synthetic sample workflow. The interface may have changed since they were taken; they do not contain merchant data. See the [publication review](docs/PUBLICATION_REVIEW.md) for the scope of the image review.
+
+| Upload and map a workbook | Review results |
+|:---:|:---:|
+| ![Earlier MarketPrice upload screen using synthetic data](docs/screenshot-upload.png) | ![Earlier MarketPrice results screen using synthetic data](docs/screenshot-results.png) |
+
+[View the sample validation errors](docs/screenshot-errors.png).
+
 ## Try it in five steps
 
 1. Launch locally and use [the public synthetic sample](samples/sample_input.csv) or generate the example Excel files with `PYTHONPATH=. python scripts/generate_samples.py`.
@@ -81,6 +91,18 @@ Keep customer workbooks and results local. The repository contains synthetic exa
 - **Managers:** [Case study](CASE_STUDY.md), [financial methodology](FINANCIAL_METHODOLOGY.md), [customer-readiness review](COMMERCIAL_READINESS.md).
 - **Developers:** [Architecture](ARCHITECTURE.md), [local API](API.md), [testing](TESTING.md), [deployment limits](DEPLOYMENT.md), [contributing](CONTRIBUTING.md).
 - **Specialist workflows:** [Actual-profit and settlement imports](OPERATIONS.md), [experimental Excel companion](excel/README.md). These require additional setup and are outside the main pricing journey.
+
+## Developer quick start
+
+From the repository root, create an isolated Python 3.13 environment and install the development lockfile:
+
+```sh
+python3.13 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.lock
+.venv/bin/python -m pytest -q
+```
+
+On Windows, use `.venv\Scripts\python.exe` in place of `.venv/bin/python`. See [contributing](CONTRIBUTING.md) for checks, safe sample data and pull request guidance.
 
 ## Project status
 
