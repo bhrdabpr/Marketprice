@@ -50,6 +50,12 @@ def preview(records):
     )
 
 
+@st.cache_data
+def synthetic_sample_workbook():
+    """Reuse the public sample only; never cache customer uploads or results."""
+    return workbook_bytes({"Products": sample_rows()})
+
+
 def clear_business_session():
     """Reset uploads/results before rendering, retaining display and navigation preferences."""
     preferences = {"ui_language", "display_currency", "display_currency__en", "display_currency__fa",
@@ -249,7 +255,7 @@ with st.sidebar:
     st.caption(t("Analysis concerns unit prices and margins only (تحلیل قیمت و سود هر واحد)."))
 st.columns([1, 2, 1])[1].download_button(
     t("Download sample input"),
-    workbook_bytes({"Products": sample_rows()}),
+    synthetic_sample_workbook(),
     "sample_input.xlsx",
     on_click="ignore",
 )
