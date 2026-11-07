@@ -151,6 +151,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 hero(workspace, language)
+st.info(
+    "فایل‌ها در محل اجرای برنامه پردازش می‌شوند. برای نسخه آنلاین از داده نمونه استفاده کنید؛ "
+    "برای فایل محرمانه از اجرای محلی یا محیط خصوصی تأییدشده استفاده کنید."
+    if language == "fa"
+    else "Files are processed where the app runs. Use sample data in the online demo; "
+    "use a local or verified private deployment for confidential files."
+)
 with st.sidebar, st.expander("نشست" if language == "fa" else "Session"):
     st.button(t("Clear session data"), key="clear_session", on_click=clear_business_session)
 if workspace == "Changes":

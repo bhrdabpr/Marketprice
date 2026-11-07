@@ -6,6 +6,9 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 .env
+.env.*
+!.env.example
+.streamlit/secrets.toml
 .DS_Store
 
 # Merchant data must remain outside the public repository

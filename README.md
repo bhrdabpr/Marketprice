@@ -14,6 +14,8 @@ Turn a seller’s cost spreadsheet into explainable price floors, three margin s
 
 The public app requires no GitHub account to use. Select USD, EUR, IRR or TOMAN for your file. The optional manual converter uses your entered exchange rate and does not change catalog values. The public app processes uploads on the hosting server. Use the local launcher for confidential catalogs. After an idle period the free host may ask you to wake the app.
 
+**Downloadable Mac and Windows apps are not available yet.** For the current demo and the work needed for private hosting and desktop releases, see [Hosting and downloads](HOSTING_AND_DOWNLOADS.md).
+
 ## Is it for you?
 
 MarketPrice is for a seller or accountant reviewing recurring price and discount decisions from a cost spreadsheet. It is useful when mixed units, missing costs and several margin scenarios make a workbook difficult to review. For a small, stable catalog with trusted formulas, Excel may remain simpler.
