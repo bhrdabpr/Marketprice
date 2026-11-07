@@ -14,6 +14,8 @@ def violations(path: str, data: bytes) -> list[str]:
         reasons.append("binary workbook/archive: publish a synthetic generator instead")
     if p.name == ".env" or p.name.startswith(".env.") and p.name != ".env.example":
         reasons.append("environment file")
+    if len(p.parts) >= 2 and p.parts[-2:] == (".streamlit", "secrets.toml"):
+        reasons.append("Streamlit secrets file")
     if p.name.startswith("screenshot-final-"):
         reasons.append("unapproved local screenshot")
     patterns = {

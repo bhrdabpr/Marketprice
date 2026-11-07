@@ -10,6 +10,8 @@ Turn a seller’s cost spreadsheet into explainable price floors, three margin s
 
 **Local-first · English / فارسی · Excel and CSV · Open source**
 
+**Example:** With $80 in costs, 10% commission, 2% other fees and a 20% target contribution margin, the model calculates a **$117.65** minimum price, rounded up to the nearest cent. [See the calculation and assumptions](FINANCIAL_METHODOLOGY.md#price-floors-and-recommendations).
+
 [Open the live app](https://marketprice-bhrdabpr.streamlit.app/) · [Try the synthetic case study](CASE_STUDY.md) · [Five real-data workbook checks](docs/WORKBOOK_VALIDATION.md) · [راهنمای فارسی](UI_GUIDE.fa.md) · [Financial limits](KNOWN_LIMITATIONS.md) · [What is ready for customers?](COMMERCIAL_READINESS.md)
 
 The public app requires no GitHub account to use. Select USD, EUR, IRR or TOMAN for your file. The optional manual converter uses your entered exchange rate and does not change catalog values. The public app processes uploads on the hosting server. Use the local launcher for confidential catalogs. After an idle period the free host may ask you to wake the app.
@@ -31,6 +33,16 @@ MarketPrice is for a seller or accountant reviewing recurring price and discount
 
 A campaign requiring 1.25× sales needs 25% more units to preserve contribution under the same cost assumptions. **MarketPrice does not predict those sales.**
 
+## Screenshots
+
+These earlier captures show the synthetic sample workflow. The interface may have changed since they were taken; they do not contain merchant data. See the [publication review](docs/PUBLICATION_REVIEW.md) for the scope of the image review.
+
+| Upload and map a workbook | Review results |
+|:---:|:---:|
+| ![Earlier MarketPrice upload screen using synthetic data](docs/screenshot-upload.png) | ![Earlier MarketPrice results screen using synthetic data](docs/screenshot-results.png) |
+
+[View the sample validation errors](docs/screenshot-errors.png).
+
 ## Try it in five steps
 
 1. Launch locally and use [the public synthetic sample](samples/sample_input.csv) or generate the example Excel files with `PYTHONPATH=. python scripts/generate_samples.py`.
@@ -39,7 +51,7 @@ A campaign requiring 1.25× sales needs 25% more units to preserve contribution 
 4. Calculate. Review corrections, price scenarios and one promotion before opening specialist analyses.
 5. Download the compact summary; prepare the full Excel report only when you need it.
 
-The standard sample has two valid products and one missing-shipping error. Its independently checked 20% target floor is **117.65 USD**. [Reproduce the calculation](CASE_STUDY.md).
+The standard sample has two valid products and one missing-shipping error. Its independently checked 20% target floor is **117.65 USD**. [See the formula](FINANCIAL_METHODOLOGY.md#price-floors-and-recommendations) or try the separate [IRR case study](CASE_STUDY.md).
 
 ## Run locally
 
@@ -79,8 +91,20 @@ Keep customer workbooks and results local. The repository contains synthetic exa
 
 - **Sellers:** [Five-minute walkthrough](QUICK_TEST.md), [bilingual costs guide](COST_GUIDE.md), [competitor evidence](CAMPAIGN_EVIDENCE.md).
 - **Managers:** [Case study](CASE_STUDY.md), [financial methodology](FINANCIAL_METHODOLOGY.md), [customer-readiness review](COMMERCIAL_READINESS.md).
-- **Developers:** [Architecture](ARCHITECTURE.md), [local API](API.md), [testing](TESTING.md), [deployment limits](DEPLOYMENT.md), [contributing](CONTRIBUTING.md).
+- **Developers:** [Architecture](ARCHITECTURE.md), [local API](API.md), [testing](TESTING.md), [deployment limits](DEPLOYMENT.md), [contributing](CONTRIBUTING.md), [roadmap](ROADMAP.md).
 - **Specialist workflows:** [Actual-profit and settlement imports](OPERATIONS.md), [experimental Excel companion](excel/README.md). These require additional setup and are outside the main pricing journey.
+
+## Developer quick start
+
+From the repository root, create an isolated Python 3.13 environment and install the development lockfile:
+
+```sh
+python3.13 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.lock
+.venv/bin/python -m pytest -q
+```
+
+On Windows, use `.venv\Scripts\python.exe` in place of `.venv/bin/python`. See [contributing](CONTRIBUTING.md) for checks, safe sample data and pull request guidance.
 
 ## Project status
 
