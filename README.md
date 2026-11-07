@@ -10,6 +10,8 @@ Turn a seller’s cost spreadsheet into explainable price floors, three margin s
 
 **Local-first · English / فارسی · Excel and CSV · Open source**
 
+**Example:** With $80 in costs, 10% commission, 2% other fees and a 20% target contribution margin, the model calculates a **$117.65** minimum price, rounded up to the nearest cent. [See the calculation and assumptions](FINANCIAL_METHODOLOGY.md#price-floors-and-recommendations).
+
 [Open the live app](https://marketprice-bhrdabpr.streamlit.app/) · [Try the synthetic case study](CASE_STUDY.md) · [Five real-data workbook checks](docs/WORKBOOK_VALIDATION.md) · [راهنمای فارسی](UI_GUIDE.fa.md) · [Financial limits](KNOWN_LIMITATIONS.md) · [What is ready for customers?](COMMERCIAL_READINESS.md)
 
 The public app requires no GitHub account to use. Select USD, EUR, IRR or TOMAN for your file. The optional manual converter uses your entered exchange rate and does not change catalog values. The public app processes uploads on the hosting server. Use the local launcher for confidential catalogs. After an idle period the free host may ask you to wake the app.
@@ -49,7 +51,7 @@ These earlier captures show the synthetic sample workflow. The interface may hav
 4. Calculate. Review corrections, price scenarios and one promotion before opening specialist analyses.
 5. Download the compact summary; prepare the full Excel report only when you need it.
 
-The standard sample has two valid products and one missing-shipping error. Its independently checked 20% target floor is **117.65 USD**. [Reproduce the calculation](CASE_STUDY.md).
+The standard sample has two valid products and one missing-shipping error. Its independently checked 20% target floor is **117.65 USD**. [See the formula](FINANCIAL_METHODOLOGY.md#price-floors-and-recommendations) or try the separate [IRR case study](CASE_STUDY.md).
 
 ## Run locally
 
@@ -89,7 +91,7 @@ Keep customer workbooks and results local. The repository contains synthetic exa
 
 - **Sellers:** [Five-minute walkthrough](QUICK_TEST.md), [bilingual costs guide](COST_GUIDE.md), [competitor evidence](CAMPAIGN_EVIDENCE.md).
 - **Managers:** [Case study](CASE_STUDY.md), [financial methodology](FINANCIAL_METHODOLOGY.md), [customer-readiness review](COMMERCIAL_READINESS.md).
-- **Developers:** [Architecture](ARCHITECTURE.md), [local API](API.md), [testing](TESTING.md), [deployment limits](DEPLOYMENT.md), [contributing](CONTRIBUTING.md).
+- **Developers:** [Architecture](ARCHITECTURE.md), [local API](API.md), [testing](TESTING.md), [deployment limits](DEPLOYMENT.md), [contributing](CONTRIBUTING.md), [roadmap](ROADMAP.md).
 - **Specialist workflows:** [Actual-profit and settlement imports](OPERATIONS.md), [experimental Excel companion](excel/README.md). These require additional setup and are outside the main pricing journey.
 
 ## Developer quick start
