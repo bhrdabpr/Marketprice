@@ -1,5 +1,9 @@
 # MarketPrice
 
+## [▶ Open MarketPrice](https://marketprice-bhrdabpr.streamlit.app/)
+
+Use it in your browser—no GitHub account or installation needed. The online demo processes files on its server; use synthetic or non-confidential data. It may take a moment to wake up.
+
 [![Financial and workflow checks](https://github.com/bhrdabpr/Marketprice/actions/workflows/ci.yml/badge.svg)](https://github.com/bhrdabpr/Marketprice/actions/workflows/ci.yml)
 
 **Review prices, promotions and settlement costs from your sales spreadsheet.**
