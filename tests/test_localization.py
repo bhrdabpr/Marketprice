@@ -98,6 +98,7 @@ def test_custom_website_uses_own_selling_price_and_ignores_market_columns():
 
 def test_language_switch_retains_financial_settings_and_renders_both_workspaces():
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.text_input(key="target_margin").set_value("22%").run()
     app.selectbox(key="sales_channel__en").select("digikala").run()
     app.radio(key="ui_language").set_value("fa").run()
@@ -129,6 +130,7 @@ def test_primary_actions_have_complete_translations():
 
 def test_roundtrip_languages_use_latest_canonical_choices():
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.selectbox(key="sales_channel__en").select("digikala").run()
     app.selectbox(key="display_currency__en").select("IRR").run()
     app.radio(key="ui_language").set_value("fa").run()
@@ -145,3 +147,4 @@ def test_roundtrip_languages_use_latest_canonical_choices():
     assert app.checkbox(key="operations_confirmed").value is True
     assert "operations_result" in app.session_state
     assert not app.exception
+

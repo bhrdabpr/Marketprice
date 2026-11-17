@@ -29,6 +29,7 @@ def read_upload(
     encoding: str = "utf-8-sig",
     sheet_name: str | None = None,
     cached_values: bool = False,
+    delimiter: str = ",",
 ) -> list[dict]:
     suffix = Path(filename).suffix.lower()
     budget = MAX_XLSX_BYTES if suffix == ".xlsx" else MAX_BYTES
@@ -36,9 +37,11 @@ def read_upload(
         raise ValueError("FILE_TOO_LARGE: maximum 50 MiB XLSX / 25 MiB CSV")
     try:
         if suffix == ".csv":
+            if delimiter not in {",", ";", "\t"}:
+                raise ValueError("UNSUPPORTED_DELIMITER")
             if encoding not in {"utf-8-sig", "utf-16", "cp1256", "cp1252"}:
                 raise ValueError("UNSUPPORTED_ENCODING")
-            source = csv.reader(io.StringIO(content.decode(encoding)))
+            source = csv.reader(io.StringIO(content.decode(encoding)), delimiter=delimiter)
             return _rows(source, mapping, preserve_headers)
         if suffix != ".xlsx":
             raise ValueError("UNSUPPORTED_FILE: use .csv or .xlsx")
@@ -237,3 +240,4 @@ def workbook_sheets(content: bytes) -> list[str]:
             return [s.attrib["name"] for s in root.findall("{*}sheets/{*}sheet")]
     except (zipfile.BadZipFile, KeyError, ET.ParseError) as exc:
         raise ValueError("INVALID_FILE: workbook metadata cannot be read") from exc
+

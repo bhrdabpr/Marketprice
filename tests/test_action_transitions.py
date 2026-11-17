@@ -26,6 +26,7 @@ def test_pricing_actions_and_invalidation(monkeypatch, language):
         st, "file_uploader", lambda *args, key=None, **kw: uploads.get(key.split("__session_")[0])
     )
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.radio(key="ui_language").set_value(language).run()
     t = lambda text: translate(text, language)
 
@@ -37,6 +38,7 @@ def test_pricing_actions_and_invalidation(monkeypatch, language):
 
     assert button("Validate and calculate").disabled
     next(c for c in app.checkbox if c.key.startswith("confirm_")).check().run()
+    next(c for c in app.checkbox if c.key.startswith("currency_confirm_")).check().run()
     app.checkbox(key="omitted_").check().run()
     download("Save reusable setup (ذخیره تنظیمات)")
     button("Validate and calculate").click().run()
@@ -92,11 +94,13 @@ def test_saved_setup_matches_visible_settings_and_allows_edits(monkeypatch):
         st, "file_uploader", lambda *args, key=None, **kw: uploads.get(key.split("__session_")[0])
     )
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     assert not app.exception and not app.error
     assert app.text_input(key="target_margin").value == "22%"
     assert app.selectbox(key="input_currency__en").value == "TOMAN"
     app.text_input(key="target_margin").set_value("25%").run()
     next(c for c in app.checkbox if c.key.startswith("confirm_")).check().run()
+    next(c for c in app.checkbox if c.key.startswith("currency_confirm_")).check().run()
     next(b for b in app.button if b.label == "Validate and calculate").click().run()
     assert not app.exception and not app.error
     row = app.session_state["result"]["Price_Recommendations"][0]
@@ -136,8 +140,10 @@ def test_all_evidence_downloads_use_current_state_without_rerunning(monkeypatch,
         st, "file_uploader", lambda *args, key=None, **kw: uploads.get(key.split("__session_")[0])
     )
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.radio(key="ui_language").set_value(language).run()
     next(c for c in app.checkbox if c.key.startswith("confirm_")).check().run()
+    next(c for c in app.checkbox if c.key.startswith("currency_confirm_")).check().run()
     app.checkbox(key="omitted_").check().run()
     next(b for b in app.button if b.label == translate("Validate and calculate", language)).click().run()
     app.number_input(key="delay_days").set_value(30).run()
@@ -197,3 +203,4 @@ def test_all_evidence_downloads_use_current_state_without_rerunning(monkeypatch,
     assert app.session_state["session_epoch"] == 1
     assert "operations_result" not in app.session_state
     assert "digikala_invoice_result" not in app.session_state
+

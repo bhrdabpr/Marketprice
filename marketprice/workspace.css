@@ -38,3 +38,6 @@ h1,h2,h3{color:#17223b;letter-spacing:-.025em}h3{font-size:21px!important}
 @media(prefers-reduced-motion:no-preference){.mp-hero{animation:mp-enter .4s ease-out both}.mp-orbit b{animation:mp-float 7s ease-in-out 2}@keyframes mp-enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}@keyframes mp-float{50%{transform:translateY(-7px)}}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(max-width:800px){[data-testid="stMainBlockContainer"]{padding:1rem 1rem 3rem}.mp-hero{padding:25px;min-height:190px}.mp-hero h2{font-size:27px!important}.mp-orbit{display:none}.mp-steps{flex-wrap:wrap}[data-testid="stMetric"]{padding:12px}[data-testid="stMetricValue"]{font-size:22px}}
+
+
+.mp-steps span{display:flex;align-items:center;gap:9px}.mp-steps b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;color:#2456cd;flex-shrink:0}

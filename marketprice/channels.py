@@ -19,6 +19,9 @@ COMMON = [
     "purchase_cost",
     "current_price",
     "shipping",
+    "commission_rate",
+    "commission_fixed",
+    "advertising",
     "overhead",
     "packaging",
     "transaction_tax_rate",
@@ -86,3 +89,4 @@ def scoped_mapping(headers, selected, mapping):
             if header_key(h) == "قیمت سایت":
                 result[h] = "current_price"
     return result
+

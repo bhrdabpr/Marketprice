@@ -46,6 +46,7 @@ def test_summary_keeps_invalid_rows_and_exact_amounts_without_original_columns()
 
 def test_clear_session_removes_financial_settings_and_cached_results():
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.text_input(key="target_margin").set_value("42%").run()
     app.session_state["result"] = {"private": "example"}
     app.session_state["download"] = b"example"
@@ -101,6 +102,7 @@ def test_publication_guard_blocks_sensitive_artifacts_without_printing_contents(
 @pytest.mark.parametrize("language", ["en", "fa"])
 def test_clear_preserves_display_preferences_and_clears_both_workspaces(language):
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.radio(key="ui_language").set_value(language).run()
     app.selectbox(key="display_currency__" + language).select("TOMAN").run()
     app.checkbox(key="digits_" + language).set_value(True).run()
@@ -122,3 +124,4 @@ def test_clear_preserves_display_preferences_and_clears_both_workspaces(language
     app.button(key="clear_session").click().run()
     assert app.radio(key="ui_language").value == language
     assert not app.exception
+
