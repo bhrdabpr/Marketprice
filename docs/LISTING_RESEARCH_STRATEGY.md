@@ -23,6 +23,52 @@ The system should produce an editable, evidence-backed draft, not a guarantee of
 
 Statuses: NEEDS_FACTS, RESEARCH_INCOMPLETE, READY_FOR_REVIEW, APPROVED. Only an authorized reviewer can set APPROVED for a specific content/evidence/rule snapshot. A changed input invalidates approval. No automatic publishing in the initial release.
 
+
+## Default operating mode: generic products, no Google Ads
+
+Owner clarification: most products are generic/unbranded, and no Google Ads access is available. Google Ads and Brand Analytics are optional enrichments, never prerequisites for the base workflow. The product must remain usable when neither is connected.
+
+### Source ladder
+
+1. Product truth: import supplier specifications, actual dimensions/materials/pack count, compatibility evidence and seller-confirmed facts. A generic product still needs evidence; no substitute source can manufacture missing specifications.
+2. Amazon public category research: use permitted observations or supplied/licensed exports of comparable listings, category vocabulary, visible attributes, available category BSR, customer questions/review themes and suggestions. Retain source/time/store and collection method. Reviews are possible buyer concerns, not verified claims about our product. Do not copy competitor copy, infer private backend keywords, equate autocomplete position with volume, or build around bypassing CAPTCHAs/undocumented endpoints.
+3. Amazon Product Opportunity Explorer, when accessible: current US official guidance identifies Professional sellers as the eligible audience, making it an avenue to check separately from Brand Analytics. Use available niche/query evidence from permitted exports or recorded observations, with niche scope and period preserved. UAE has official guidance/announcements too, but actual account availability, export functions and marketplace coverage must be verified rather than assumed. No automated connector is claimed.
+4. Google Trends CSV exports: compare relevant terms within the same geography, category, search type and time window; keep US and UAE separate. Preserve the original comparison group and normalization context. Interest is relative, not monthly search counts. A zero or absent low-volume term is not proof of zero demand. English and Arabic UAE terms need separate intent validation, not literal translation.
+5. Google public search: discover terminology and intent from relevant source pages using permitted access; search-result snippets are incomplete evidence. Record observation context. Do not count estimated search-result totals as keyword demand or fabricate a competitor's Search Console data.
+6. Optional later evidence: seller advertising/search-term reports if campaigns exist, or a licensed third-party provider only after confirming US/UAE coverage, methodology, export/API rights, privacy and cost. Label third-party volumes/ranks as estimates. No subscription, account creation or ad spending is required or authorized by this plan.
+
+### Output without privileged metrics
+
+Produce product-supported keyword candidates, exclusions, comparison notes, placement plans and reviewable copy even when volume is unavailable. Show separate dimensions: factual relevance, source corroboration, trend coverage, marketplace-rule coverage and review status.
+
+Use evidence labels such as PRODUCT_SUPPORTED, OBSERVED_IN_COMPARABLES, RELATIVE_TREND_AVAILABLE and DEMAND_UNMEASURED. These are provenance labels, not calibrated probabilities or interchangeable measures of demand. Competitor phrase frequency is only a cohort observation, not conversion evidence.
+
+Choose the supported phrase that best identifies the product and buyer intent. Use a documented tie-break based on specificity, clarity and nonredundancy when demand cannot distinguish candidates. Say why it was selected; do not invent an “optimal keyword” verdict.
+
+### Generic-product controls
+
+- Record branding status explicitly: branded, generic or unknown. Truly generic means no identifiable brand on the product or packaging; absence of Brand Registry alone does not establish that a product is generic.
+- Use Amazon's applicable generic brand-field value. Do not demand that the title contain the literal word Generic, fabricate a brand, or promote competitor brand names as the product's own identity.
+- Treat compatibility language separately from branding. It needs factual evidence and current marketplace-specific policy review; never blindly strip all brand mentions or freely add popular brands.
+- Do not automatically join another seller's generic listing or rebrand an existing generic ASIN. Amazon's generic-product guidance describes restrictions on both. Validate destination/store policy before listing operations.
+- GTIN exemption and category/store eligibility remain separate from copy quality; do not promise exemptions or treat blank GTIN as approved.
+- Preserve raw brand values in the audit and show any proposed destination normalization explicitly.
+- The local lexical prototype was corrected so Generic/Unbranded/No brand do not trigger a missing-brand-in-title suggestion. This local change is not included in the documentation-only PR; production code integration still requires reconciliation.
+
+### Acceptance criteria for this mode
+
+The no-credentials path must complete an evidence-labeled draft without Ads or Brand Analytics. Missing metrics remain null/unavailable and cannot become zero, fabricated volume or a paid-service dependency. Generic-brand tests must prevent fabricated branding and unnecessary Generic title suggestions while preserving checks on actual models and real brands. Tests must cover unverified compatibility, insufficient Trends data, different comparison scales, stale observations and US/UAE separation.
+
+First implementation should use CSV/XLSX evidence imports and explicit source mapping; it should not claim that research acquisition is already automated. Reuse per-category research where licensed and current, while rechecking product-specific facts. Measure import preparation and reviewer time as part of the hours-to-minutes objective.
+
+Sources verified 17 November 2026:
+- [Amazon generic-product guidance](https://sell.amazon.com/blog/sell-generic-products)
+- [Amazon title FAQ, including unbranded products](https://sellercentral.amazon.com/gp/help/external/YTR6SYGFA5E3EQC?mons_sel_locale=en_US)
+- [Product Opportunity Explorer eligibility, US](https://sellercentral.amazon.com/help/hub/reference/external/GNJ4YRTXWLMBY38U?locale=enUS)
+- [Product Opportunity Explorer, UAE announcement](https://sellercentral.amazon.ae/seller-forums/discussions/t/1084cdf2-750a-4e57-b674-72b6388e9036)
+- [Google Trends CSV exports](https://support.google.com/trends/answer/4365538?hl=en)
+- [Google Trends comparisons](https://support.google.com/trends/answer/4359550?hl=en)
+
 ## Source matrix: what each signal means
 
 | Source | Use | Access and limits |
