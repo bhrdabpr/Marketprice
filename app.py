@@ -4,6 +4,7 @@ import hashlib
 import json
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -22,6 +23,7 @@ from marketprice.flexible import calculate_catalog
 from marketprice.i18n import translate
 from marketprice.importing import IGNORE, UNMAPPED, map_rows, suggest_mapping
 from marketprice.io import json_default, pricing_summary_csv, read_upload, workbook_bytes, workbook_sheets
+from marketprice.listings_ui import render_listings
 from marketprice.models import CURRENCIES, Product
 from marketprice.operations_ui import render_operations
 from marketprice.opportunity_ui import render_opportunity
@@ -33,7 +35,7 @@ from marketprice.settlement_scenarios import review_delay
 from marketprice.templates import load_setup, save_setup
 from marketprice.validation import number
 from marketprice.workbook_review import price_dependent_costs
-from marketprice.workspace_ui import SECTIONS, hero, overview, section_label
+from marketprice.workspace_ui import SECTIONS, hero, overview, section_label, steps
 
 
 def t(text):
@@ -62,6 +64,13 @@ def clear_business_session():
     st.session_state["sales_map_demo"] = False
     st.session_state["sales_map_regression"] = False
     st.session_state["sales_map_days"] = 30
+
+
+def remember_catalog(key):
+    source = st.session_state.get(key)
+    st.session_state["pricing_source"] = (source.name, source.getvalue()) if source is not None else None
+    for name in ("result", "fingerprint", "download", "summary_download"):
+        st.session_state.pop(name, None)
 
 
 def remember_selection(key, widget_key):
@@ -102,10 +111,10 @@ language = st.sidebar.radio(
     key="ui_language",
 )
 workspace_key = "workspace__" + language
-st.session_state[workspace_key] = st.session_state.get("workspace", "Pricing (قیمت گذاری)")
+st.session_state[workspace_key] = st.session_state.get("workspace", "Overview")
 workspace = st.sidebar.radio(
     "فضای کار" if language == "fa" else "Workspace",
-    list(SECTIONS), index=1,
+    list(SECTIONS), index=0,
     format_func=lambda value: section_label(value, language),
     key=workspace_key,
     on_change=remember_selection, args=("workspace", workspace_key),
@@ -150,24 +159,57 @@ st.markdown(
     "<style>" + (Path(__file__).parent / "marketprice" / "ui.css").read_text() + (Path(__file__).parent / "marketprice" / "workspace.css").read_text() + "</style>",
     unsafe_allow_html=True,
 )
+# Preserve the source across tools without showing unrelated upload controls.
+upload = None
+if workspace in {"Pricing (قیمت گذاری)", "Campaigns"}:
+    with st.sidebar:
+        uploaded = st.file_uploader(
+            t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"],
+            key=f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}", max_upload_size=50,
+            on_change=remember_catalog, args=(f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}",),
+        )
+    if uploaded is not None:
+        st.session_state["pricing_source"] = (uploaded.name, uploaded.getvalue())
+    catalog_source = st.session_state.get("pricing_source")
+    if catalog_source:
+        upload = BytesIO(catalog_source[1])
+        upload.name = catalog_source[0]
+# Confirmation widgets are not rendered outside Pricing; retain their values across navigation.
+if workspace not in {"Pricing (قیمت گذاری)", "Campaigns"}:
+    for state_key in list(st.session_state):
+        if isinstance(state_key, str) and (state_key.startswith(("confirm_", "currency_confirm_", "correction_", "tax_", "omitted_", "estimates_", "unit_", "map_", "worksheet_", "event_margin_", "event_cost_")) or state_key in {"target_margin", "flexible_mode", "extra_margins", "campaign_discounts", "platform_share", "allow_unsafe", "cached_values", "csv_encoding", "advanced_matching", "review_ignored", "cost_scope_enabled", "applicable_cost_fields", "event_selection", "store_name"}):
+            st.session_state[state_key] = st.session_state[state_key]
 hero(workspace, language)
 with st.sidebar, st.expander("نشست" if language == "fa" else "Session"):
     st.button(t("Clear session data"), key="clear_session", on_click=clear_business_session)
 if workspace == "Changes":
+    steps(language)
     render_changes(language)
+    st.stop()
+if workspace == "Listings":
+    render_listings(language)
     st.stop()
 if workspace == "Overview":
     overview(language)
     st.stop()
 if workspace == "Cost impact":
+    steps(language, [("Set period & currency", "انتخاب دوره و واحد"), ("Enter costs", "ورود هزینه‌ها"), ("Review impact", "بررسی اثر"), ("Download scenario", "دریافت سناریو")])
     render_cost_impact(language)
     st.stop()
 if workspace == "Sales map":
+    steps(language, [("Add observations", "ورود مشاهدات"), ("Choose comparable group", "انتخاب گروه مشابه"), ("Explore patterns", "بررسی الگوها"), ("Download analysis", "دریافت تحلیل")])
     render_opportunity(language, display_currency, persian_digits)
     st.stop()
 if workspace == "Actual profit (سود واقعی)":
+    steps(language)
     render_operations(language, display_currency, persian_digits)
     st.stop()
+steps(language)
+st.info(("برای کمپین: فایل هزینه و قیمت فعلی را وارد کنید، تخفیف‌ها را تنظیم کنید و نتیجه را بررسی کنید." if language == "fa" else
+         "For a campaign: upload costs and current prices, set your discounts, then review contribution and sales requirements.") if workspace == "Campaigns" else
+        ("۱. فایل را از نوار کناری وارد کنید. ۲. واحد، ستون‌ها و هزینه‌ها را بررسی کنید. ۳. محاسبه و گزارش را دریافت کنید." if language == "fa" else
+         "1. Upload a file in the sidebar. 2. Review currency, columns and costs. 3. Calculate and download your report."))
+st.subheader("۱ · انتخاب کانال و هدف" if language == "fa" else "1 · Choose your channel and targets")
 profiles = load_profiles()
 selected = select_localized(
     t("Choose a sales channel"),
@@ -246,9 +288,6 @@ st.columns([1, 2, 1])[1].download_button(
     "sample_input.xlsx",
     on_click="ignore",
 )
-upload = st.file_uploader(
-    t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"], key=f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}", max_upload_size=50
-)
 st.caption(
     t(
         "50 MiB XLSX / 25 MiB CSV; 100,000 data rows maximum. Blank costs need review; enter 0 only when confirmed."
@@ -259,9 +298,20 @@ with st.expander(t("File options")):
         t("CSV encoding"), ["utf-8-sig", "utf-16", "cp1256", "cp1252"], key="csv_encoding"
     )
 if upload is not None:
+    st.subheader("۲ · بررسی فایل و اطلاعات" if language == "fa" else "2 · Review your file and inputs")
     try:
         raw_bytes = upload.getvalue()
         source_hash = hashlib.sha256(raw_bytes).hexdigest()
+        st.info(("فایل فعال: " if language == "fa" else "Active file: ") + upload.name +
+                (" — فقط در این نشست؛ ذخیره دائمی نیست." if language == "fa" else " — this session only; not permanently saved."))
+        st.caption(("واحد ورودی: " if language == "fa" else "Input currency: ") + currency +
+                   (" (۱ تومان = ۱۰ ریال). تبدیل خودکار انجام نمی‌شود." if language == "fa" else
+                    " (1 TOMAN = 10 IRR). Values are not automatically converted."))
+        currency_confirmed = st.checkbox(
+            (f"تأیید می‌کنم واحد مبالغ فایل {currency} است (به‌جز ستون واحد پول)." if language == "fa" else
+             f"I confirm file amounts use {currency}, except where a currency column specifies otherwise."),
+            key="currency_confirm_" + source_hash + currency,
+        )
         sheet_name = None
         cached_values = False
         if upload.name.lower().endswith(".xlsx"):
@@ -339,6 +389,7 @@ if upload is not None:
         st.caption(t("Common product columns are shown first; advanced fields remain available."))
         setup_key = hashlib.sha256(setup_file.getvalue()).hexdigest()[:8] if setup_file else ""
         with st.expander(t("Column mapping"), expanded=True):
+            st.caption("کارمزد درصدی: مثلاً ۱۰٪ از قیمت فروش؛ کارمزد ثابت: مثلاً ۵۰۰۰ تومان برای هر سفارش. ستون مبهم را خودتان انتخاب کنید." if language == "fa" else "Percentage commission: for example 10% of the selling price. Fixed commission: for example 5,000 per order. Choose the meaning of ambiguous columns.")
             st.caption(
                 t(
                     "Review the suggested fields. Choose a field for unknown headers, or explicitly Ignore column. Amounts and percentage rates are different fields."
@@ -410,6 +461,21 @@ if upload is not None:
         mapped = map_rows(initial, mapping, conversions, locale=locale)
         if source_market:
             mapped = [{**row, "marketplace": source_market} for row in mapped]
+        corrections = []
+        missing_cells = [(i, field) for i, row in enumerate(mapped) for field, value in row.items()
+                         if field in COST_FIELDS | {"purchase_cost"} and (value is None or str(value).strip() == "")]
+        if missing_cells:
+            with st.expander("اصلاح هزینه‌های خالی برای این تحلیل" if language == "fa" else "Correct blank costs for this analysis", expanded=True):
+                st.caption("خالی یعنی نامشخص؛ صفر را فقط در صورت اطمینان وارد کنید. فایل اصلی تغییر نمی‌کند." if language == "fa" else "Blank means unknown; enter zero only when confirmed. The original file is unchanged.")
+                for i, field in missing_cells:
+                    row = mapped[i]
+                    title = f'{row.get("name", "")} · {row.get("sku", "")} · row {i + 2} · {label(field)} ({currency})'
+                    replacement = st.text_input(title, key=f"correction_{source_hash}_{i}_{field}")
+                    if replacement.strip():
+                        corrections.append({"row": i + 2, "sku": row.get("sku", ""), "field": field,
+                                            "original": row.get(field), "replacement": replacement,
+                                            "source": "seller session correction"})
+                        row[field] = replacement
         default_tax = st.text_input(
             t("Seller tax expense rate (only when no tax column exists)"),
             setup["settings"].get("seller_tax", "0%") if setup else "0%",
@@ -573,6 +639,8 @@ if upload is not None:
             mapping,
             conversions,
             confirmed_mapping,
+            currency_confirmed,
+            corrections,
             events,
             source_market,
             default_tax,
@@ -587,8 +655,9 @@ if upload is not None:
             st.session_state.pop("result", None)
             st.session_state.pop("summary_download", None)
             st.session_state.pop("download", None)
+        st.subheader("۳ · تحلیل" if language == "fa" else "3 · Analyze")
         calculate_clicked = st.columns([1, 2, 1])[1].button(
-            t("Validate and calculate"), type="primary", disabled=not confirmed_mapping, width="stretch"
+            t("Validate and calculate"), type="primary", disabled=not (confirmed_mapping and currency_confirmed), width="stretch"
         )
         if calculate_clicked:
             margins = tuple(number(x.strip(), locale) for x in margins_text.split(";") if x.strip())
@@ -639,11 +708,44 @@ if upload is not None:
                     },
                 }
             )
+            result["Corrections"] = corrections
+            st.session_state["result_meta"] = {"file": upload.name, "time": datetime.now().astimezone().isoformat(timespec="seconds"), "currency": currency, "channel": selected, "target": target, "locale": locale}
+            result["Assumptions"].append({"setting": "Session source and settings", "value": st.session_state["result_meta"]})
             st.session_state["result"] = result
             st.session_state["fingerprint"] = fingerprint
             bar.progress(1.0, text=t("Complete — results ready"))
         if "result" in st.session_state:
+            st.subheader("۴ · بررسی نتیجه و دریافت گزارش" if language == "fa" else "4 · Review results and download")
             result = st.session_state["result"]
+            meta = st.session_state["result_meta"]
+            st.info(("نتیجه فعلی نشست" if language == "fa" else "Current session result") +
+                    f' · {meta["file"]} · {meta["time"]} · {meta["currency"]} · {meta["channel"]} · {meta["target"]} · {meta["locale"]}')
+            if flexible and "current_price" not in mapped[0] and result["Price_Recommendations"]:
+                with st.expander("سناریوی فرضی کمپین بدون قیمت فروش فعلی" if language == "fa" else "Hypothetical campaign without a current selling price"):
+                    st.caption("قیمت پایه پیشنهادی و نتیجه کمپین فرضی هستند؛ سود تاریخی نیستند. هزینه‌ها و قواعد تأییدنشده همچنان نیازمند بررسی‌اند." if language == "fa" else "The proposed baseline and campaign are hypothetical, not historical profit. Unconfirmed costs and rules still need review.")
+                    recommendations = result["Price_Recommendations"]
+                    choice = st.selectbox("قیمت پایه پیشنهادی" if language == "fa" else "Proposed baseline", range(len(recommendations)),
+                        format_func=lambda i: f'{recommendations[i]["sku"]} · {recommendations[i]["recommended_price"]} {recommendations[i]["currency"]} · {recommendations[i]["target_margin"]}')
+                    selected_recommendation = recommendations[choice]
+                    source_row = selected_recommendation["row"] - 2
+                    hypothetical = calculate_catalog(
+                        [{**mapped[source_row], "current_price": str(selected_recommendation["recommended_price"])}],
+                        currency=currency, target_margin=target, marketplace=selected, locale=locale,
+                        cost_states=cost_states, omitted_costs_confirmed=omitted_confirmed, profiles=profiles,
+                        margins=(), discounts=tuple(number(x.strip(), locale) for x in discount_text.split(";") if x.strip()),
+                        platform_share=number(share, locale), campaign_kind=kind, override=override,
+                    )
+                    scenarios = [{**item, "baseline_type": "HYPOTHETICAL_PROPOSED_PRICE", "baseline_price": selected_recommendation["recommended_price"], "decision_ready": False} for item in hypothetical["Campaign_Simulations"]]
+                    st.dataframe(preview(scenarios), hide_index=True)
+                    st.caption("این نتیجه فرضی و موقت است؛ هزینه‌ها و قواعد را بررسی کنید." if language == "fa" else "Scenario is hypothetical and provisional; review costs and rules.")
+                    st.download_button("دریافت سناریوی فرضی" if language == "fa" else "Download hypothetical scenario", json.dumps({"baseline": selected_recommendation, "scenario": scenarios, "costs_and_assumptions": hypothetical["Assumptions"], "product_calculation": hypothetical["Product_Calculations"]}, default=json_default, ensure_ascii=False, indent=2), "hypothetical_campaign.json", on_click="ignore")
+            if workspace == "Campaigns":
+                st.subheader("نتیجه کمپین" if language == "fa" else "Campaign results")
+                st.caption("این اعداد سناریو هستند؛ پیش‌بینی فروش نیستند." if language == "fa" else "These are feasibility scenarios, not sales predictions. Detailed campaign tools are below in the Campaigns tab.")
+                st.dataframe(preview(result["Campaign_Simulations"][:1000]), hide_index=True)
+                st.download_button("دریافت بررسی کمپین" if language == "fa" else "Download campaign review",
+                                   workbook_bytes({"Campaigns": result["Campaign_Simulations"], "Assumptions": result["Assumptions"]}),
+                                   "marketprice_campaign_review.xlsx", on_click="ignore")
             cols = st.columns(4)
             for col, item in zip(cols, result["Summary"][:3]):
                 col.metric(
@@ -963,7 +1065,6 @@ if upload is not None:
         st.session_state.pop("result", None)
         st.session_state.pop("download", None)
 else:
-    st.markdown('<div class="mp-steps"><span>01 · '+("ورود فایل" if language == "fa" else "Import")+'</span><i>→</i><span>02 · '+("بررسی هزینه" if language == "fa" else "Review costs")+'</span><i>→</i><span>03 · '+("مقایسه و تصمیم" if language == "fa" else "Compare & decide")+'</span></div>', unsafe_allow_html=True)
     with st.expander("حریم خصوصی و راهنما" if language == "fa" else "Privacy & help"):
         st.markdown(
         t(

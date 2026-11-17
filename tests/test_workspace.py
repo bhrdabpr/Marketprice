@@ -29,9 +29,10 @@ def test_descriptive_regression():
 @pytest.mark.parametrize('language', ['en', 'fa'])
 def test_workspace_navigation(language):
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'app.py')).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.radio(key='ui_language').set_value(language).run()
     app.radio[1].set_value('Overview').run()
-    app.button(key='open_2').click().run()
+    app.button(key='tool_costs').click().run()
     assert app.radio[1].value == 'Cost impact'
     assert len(app.metric) == 3
     assert not app.exception
@@ -39,6 +40,7 @@ def test_workspace_navigation(language):
 
 def test_cost_inputs_survive_language_and_clear():
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'app.py')).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.radio[1].set_value('Cost impact').run()
     app.number_input(key='cost_impact_units_0').set_value(245).run()
     app.radio(key='ui_language').set_value('fa').run()
@@ -52,9 +54,11 @@ def test_cost_inputs_survive_language_and_clear():
 
 def test_selected_season_survives_language_round_trip():
     app = AppTest.from_file(str(Path(__file__).resolve().parents[1] / 'app.py')).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     selected = ['Yalda (یلدا)']
     app.multiselect[0].set_value(selected).run()
     for language in ('fa', 'en'):
         app.radio(key='ui_language').set_value(language).run()
         assert app.multiselect[0].value == selected
         assert not app.exception
+

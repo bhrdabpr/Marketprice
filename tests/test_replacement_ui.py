@@ -39,8 +39,10 @@ def test_bilingual_quote_and_budget_evidence_without_cloud(monkeypatch, language
     monkeypatch.setattr(st, "file_uploader", upload)
     monkeypatch.setattr(st, "download_button", capture)
     app = AppTest.from_file(Path("app.py").resolve()).run()
+    app.radio(key="workspace__en").set_value("Pricing (قیمت گذاری)").run()
     app.radio(key="ui_language").set_value(language).run()
     next(c for c in app.checkbox if c.key.startswith("confirm_")).check().run()
+    next(c for c in app.checkbox if c.key.startswith("currency_confirm_")).check().run()
     app.checkbox(key="omitted_").check().run()
     next(b for b in app.button if b.label == translate("Validate and calculate", language)).click().run()
     assert not app.exception and not app.error
@@ -88,3 +90,4 @@ def test_bilingual_quote_and_budget_evidence_without_cloud(monkeypatch, language
     app.button(key="clear_session").click().run()
     assert "result" not in app.session_state
     assert app.radio(key="ui_language").value == language
+

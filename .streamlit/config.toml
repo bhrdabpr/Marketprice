@@ -4,12 +4,13 @@ maxMessageSize = 100
 address = "127.0.0.1"
 enableXsrfProtection = true
 enableCORS = true
-[browser]
-gatherUsageStats = false
+
 [theme]
 base = "light"
-primaryColor = "#2563EB"
-backgroundColor = "#F1F2F4"
-secondaryBackgroundColor = "#E5E7EB"
-textColor = "#111111"
-font = "sans serif"
+primaryColor = "#3368ed"
+backgroundColor = "#f4f6fa"
+secondaryBackgroundColor = "#ffffff"
+textColor = "#17223b"
+
+[browser]
+gatherUsageStats = false

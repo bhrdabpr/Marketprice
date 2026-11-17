@@ -28,7 +28,11 @@ def render_cost_impact(language):
         return persian if fa else en
     st.caption(t("Incremental scenario for one period. Use one currency and exclude costs already counted elsewhere.", "سناریوی هزینه اضافی یک دوره؛ همه مبالغ با یک واحد و بدون هزینه‌هایی که قبلاً محاسبه شده‌اند."))
     epoch = st.session_state.get("session_epoch", 0)
-    currency = st.selectbox(t("Currency", "واحد پول"), ["IRR", "TOMAN", "USD", "EUR", "Other"], key=f"cost_impact_currency_{epoch}")
+    currencies = ["IRR", "TOMAN", "USD", "EUR", "Other"]
+    carried = st.session_state.get("input_currency", "IRR")
+    currency = st.selectbox(t("Currency", "واحد پول"), currencies,
+                            index=currencies.index(carried) if carried in currencies else 4,
+                            key=f"cost_impact_currency_{epoch}")
     a, b = st.columns(2)
     with a, st.container(border=True):
         st.subheader(t("Returns", "مرجوعی"))
@@ -46,6 +50,8 @@ def render_cost_impact(language):
     c.metric(t("Additional cost", "هزینه اضافی"), f'{result["total"]:,.2f} {currency}')
     d.metric(t("Cost per dispatched unit", "هزینه هر واحد ارسال‌شده"), f'{result["per_unit"]:,.2f} {currency}')
     e.metric(t("Expected returns", "تعداد مرجوعی مورد انتظار"), f'{result["expected_returns"]:,.2f}')
+    st.warning(t("Fixed incremental costs only: price-dependent refunds, recovered inventory, retained fees and tax refunds are not modeled. Do not treat this as a complete returns model.", "فقط هزینه‌های ثابت اضافی محاسبه شده‌اند؛ بازپرداخت وابسته به قیمت، کالای بازیافتی، کارمزد نگه‌داشته‌شده و برگشت مالیات مدل نشده‌اند. این مدل کامل مرجوعی نیست."))
     with st.expander(t("Calculation details", "جزئیات محاسبه")):
         st.write(t("Returns × (reverse logistics + unrecoverable value) + monthly storage × months + penalties. This excludes lost revenue, tax refunds and capital cost; it is not net profit.", "تعداد مرجوعی × (هزینه برگشت + افت ارزش) + هزینه ماهانه نگهداری × ماه + جریمه. درآمد از دست‌رفته، برگشت مالیات و هزینه سرمایه در این سناریو نیست؛ این عدد سود خالص نیست."))
     st.download_button(t("Download scenario", "دریافت سناریو"), json.dumps({"currency": currency, "inputs": {"units": units, "return_rate_percent": rate, "reverse_cost": reverse, "writeoff": writeoff, "monthly_storage": storage, "months": months, "penalties": penalties}, "results": result}, default=str, ensure_ascii=False, indent=2), "cost_scenario.json", on_click="ignore")
+

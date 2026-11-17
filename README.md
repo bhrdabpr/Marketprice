@@ -35,9 +35,15 @@ MarketPrice is for a seller or accountant reviewing recurring price and discount
 
 A campaign requiring 1.25× sales needs 25% more units to preserve contribution under the same cost assumptions. **MarketPrice does not predict those sales.**
 
+## Choose a tool
+
+MarketPrice opens on **Home · choose a tool**. Start with pricing, campaign analysis, catalog listing review, financial performance, hidden costs, price/sales observations or report comparison. Each workspace shows its inputs, review steps and downloadable output.
+
+**Catalog listing review (preview)** accepts Excel and CSV for Amazon.com or Amazon.ae. It checks explicit quantities, duplicate content, vague wording and keyword evidence against supplied product facts. It does not provide live search volumes, competitor ranks, semantic relevance certification or generated copy. The selected store is recorded as context; store-specific policy validation is not implemented. [Workflow and validation details](docs/GUIDED_WORKSPACE.md).
+
 ## Try it in five steps
 
-1. Launch locally and use [the public synthetic sample](samples/sample_input.csv) or generate the example Excel files with `PYTHONPATH=. python scripts/generate_samples.py`.
+1. Open the app, choose **Price a product**, and use [the public synthetic sample](samples/sample_input.csv) or generate the example Excel files with `PYTHONPATH=. python scripts/generate_samples.py`.
 2. Select your language, sales channel, worksheet and monetary units. Review suggested column meanings.
 3. Confirm costs and margin targets. Explicit zero means no expense; blank mapped costs invalidate that product. Unconfirmed omitted costs keep decisions provisional.
 4. Calculate. Review corrections, price scenarios and one promotion before opening specialist analyses.

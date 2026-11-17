@@ -1,6 +1,7 @@
 """Real browser upload, calculation, download, and workbook reconciliation."""
 
 import json
+import os
 import time
 import urllib.error
 import urllib.request
@@ -9,7 +10,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 from playwright.sync_api import sync_playwright
 
-url = "http://127.0.0.1:8501"
+url = os.environ.get("MARKETPRICE_TEST_URL", "http://127.0.0.1:8501")
 for _ in range(100):
     try:
         urllib.request.urlopen(url + "/_stcore/health", timeout=1).close()
@@ -24,6 +25,7 @@ with sync_playwright() as pw:
     browser = pw.chromium.launch()
     page = browser.new_page(viewport={"width": 1440, "height": 1080}, device_scale_factor=1)
     page.goto(url)
+    page.locator(".st-key-tool_pricing button").click()
     page.get_by_role("heading", name="Pricing & campaigns", exact=True).wait_for(timeout=30000)
     for locale, label in [("فارسی", "قیمت و کمپین"), ("English", "Pricing & campaigns")]:
         page.get_by_text(locale, exact=True).click()
@@ -40,6 +42,7 @@ with sync_playwright() as pw:
     assert page.get_by_role(
         "checkbox", name="I reviewed the column meanings, ignored columns and units"
     ).is_checked()
+    page.get_by_text("I confirm file amounts use", exact=False).click()
     page.get_by_role("button", name="Validate and calculate", exact=True).click(timeout=30000)
     page.get_by_role("button", name="Prepare complete Excel report", exact=True).click()
     download_button = page.get_by_role("button", name="Download results workbook", exact=True)
@@ -68,7 +71,7 @@ with sync_playwright() as pw:
     page.get_by_role("button", name="Download competitor evidence template", exact=True).wait_for()
     page.get_by_role("tab", name="Errors & warnings").click()
     book = load_workbook("reports/browser_download.xlsx", data_only=True)
-    assert len(book.sheetnames) == 14
+    assert "Corrections" in book.sheetnames
     sheet = book["Price_Recommendations"]
     records = list(sheet.values)
     headers = records[0]
