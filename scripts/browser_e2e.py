@@ -31,6 +31,13 @@ with sync_playwright() as pw:
         "buffer": b"impressions,clicks,spend,attributed orders,attributed sales,currency\n400,20,24,4,96,AED",
     })
     page.get_by_text("CTR (%)", exact=True).first.wait_for()
+    with page.expect_download() as review_item:
+        page.get_by_role("button", name="Download review as Excel").click()
+    with open(review_item.value.path(), "rb") as review_file:
+        review_book = load_workbook(review_file, read_only=True)
+        assert review_book["Source rows"]["A2"].value == "400"
+        assert "Answers" in review_book.sheetnames
+        review_book.close()
     page.get_by_role("button", name="View in project").click()
     page.get_by_role("heading", name="Project dashboard").wait_for()
     with page.expect_download() as project_item:

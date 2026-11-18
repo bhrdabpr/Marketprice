@@ -7,8 +7,9 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+from .channels import channel_label
 from .flexible import calculate_catalog
-from .importing import IGNORE, UNMAPPED, header_key, map_rows, suggest_mapping
+from .importing import IGNORE, UNMAPPED, available_markets, header_key, map_rows, suggest_mapping
 from .io import read_upload
 from .listings import map_listing_rows, review_listings, suggest_listing_mapping
 from .models import CURRENCIES
@@ -127,6 +128,39 @@ def metrics(task, row, index):
     return out | {"Next input": ", ".join(dict.fromkeys(missing)), "Check": ". ".join(invalid)}
 
 
+def catalog_checks(rows, selected, markets):
+    """Count usable inputs per channel without converting money or accepting boolean lookup failures."""
+    fields = {"purchase_cost", "overhead", "shipping", "commission_rate", "current_price"}
+    columns = {}
+    for market in markets:
+        for header, field in suggest_mapping(list(rows[0]), market).items():
+            if field in fields and field != selected.get(header):
+                columns[header] = (channel_label(market), field)
+    for header, field in selected.items():
+        if field in fields:
+            columns[header] = ("Shared", field)
+    info = []
+    problems = []
+    identifier = next((h for h, f in selected.items() if f == "sku"), None)
+    for header, (channel, field) in columns.items():
+        count = 0
+        for index, row in enumerate(rows, 2):
+            value = row.get(header)
+            try:
+                amount = number(value)
+                if amount < 0 or (field == "commission_rate" and amount > 1):
+                    raise ValueError
+                if field != "commission_rate" and "%" in str(value).replace("٪", "%"):
+                    raise ValueError
+                count += 1
+            except (ValueError, ArithmeticError):
+                problems.append({"Row": index, "SKU": row.get(identifier) if identifier else "",
+                                 "Channel": channel, "Column": header, "Source value": value})
+        info.append({"Channel": channel, "Column": header, "Used for": field, "Numeric inputs": count,
+                     "Need review": len(rows) - count})
+    return info, problems
+
+
 @financial
 def price_report(rows, task):
     headers = list(rows[0])
@@ -141,7 +175,9 @@ def price_report(rows, task):
     entries = []
     checks = []
     confidence = []
-    if "purchase_cost" in selected.values() and "currency" in selected.values():
+    markets = available_markets(headers)
+    ready = "purchase_cost" in selected.values() and "currency" in selected.values() and not markets
+    if ready:
         mapped = map_rows(rows, {k: selected.get(k, IGNORE) for k in headers})
         for record in mapped:
             for field in ("purchase_cost", "current_price", "fulfillment", "shipping", "packaging", "warehouse"):
@@ -158,7 +194,12 @@ def price_report(rows, task):
                        for r in result["Price_Analysis"]]
         checks.extend(result["Errors"])
     else:
-        checks.append({"Next input": "Add purchase_cost and currency columns for per-unit prices and contribution."})
+        if "purchase_cost" not in selected.values():
+            checks.append({"Next input": "Identify the unit purchase cost column."})
+        if markets:
+            checks.append({"Next input": "Choose a sales channel for pricing: " + ", ".join(channel_label(m) for m in markets) + "."})
+        if "currency" not in selected.values():
+            checks.append({"Next input": "Confirm the money unit for each price and cost column."})
     if task == "profit":
         for i, raw in enumerate(rows):
             values = mapped_values(raw)
@@ -183,6 +224,8 @@ def price_report(rows, task):
             price_key = next((k for k, v in selected.items() if v == "current_price"), "")
             cost_key = next((k for k, v in selected.items() if v == "purchase_cost"), "")
             try:
+                if not ready:
+                    raise ValueError
                 price_value, cost_value = raw.get(price_key), raw.get(cost_key)
                 if any("%" in str(v).replace("٪", "%") for v in (price_value, cost_value)):
                     raise ValueError
@@ -194,7 +237,14 @@ def price_report(rows, task):
             except ValueError:
                 pass
     ignored = [k for k in headers if k not in selected]
-    return {"Answers": entries, "Checks": checks, "Cost details": confidence, "Columns outside price calculation": [{"Column": h} for h in ignored]}
+    report = {"Answers": entries, "Checks": checks, "Cost details": confidence}
+    if not ready:
+        columns, problems = catalog_checks(rows, selected, markets)
+        report.update({"Detected inputs": columns, "Cells to check": problems})
+        recognized = {r["Column"] for r in columns}
+        ignored = [h for h in ignored if h not in recognized]
+    report["Columns outside price calculation"] = [{"Column": h} for h in ignored]
+    return report
 
 
 def analyze(task, rows):

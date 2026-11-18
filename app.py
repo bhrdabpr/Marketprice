@@ -169,11 +169,14 @@ st.markdown(
 # Preserve the source across tools without showing unrelated upload controls.
 upload = None
 if workspace in {"Pricing (قیمت گذاری)", "Campaigns"}:
+    upload_key = f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}"
+    if st.session_state.get("catalog_handoff"):
+        upload_key += f"__project_{st.session_state['catalog_handoff']}"
     with st.sidebar:
         uploaded = st.file_uploader(
             t("Upload products (.xlsx or UTF-8 .csv)"), type=["xlsx", "csv"],
-            key=f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}", max_upload_size=50,
-            on_change=remember_catalog, args=(f"catalog_upload__session_{st.session_state.get('session_epoch', 0)}",),
+            key=upload_key, max_upload_size=50,
+            on_change=remember_catalog, args=(upload_key,),
         )
     if uploaded is not None:
         st.session_state["pricing_source"] = (uploaded.name, uploaded.getvalue())
