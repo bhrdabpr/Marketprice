@@ -1,201 +1,172 @@
-# Evidence-backed listing research for Amazon.com and Amazon.ae
+# Listing Intelligence: evidence, creation and improvement
 
-Status: proposed implementation strategy, not a production-readiness claim.
-Research date: 17 November 2026.
-Baseline: a3fd42d87928cfa50daa0c04501b3b7752462c7f.
-Selected markets: Amazon.com and Amazon.ae. English first for US; separate English and Arabic research tracks for UAE, with reviewed locale-specific copy.
+Research updated: 18 November 2026. Markets: Amazon.com and Amazon.ae.
+Status: implementation specification; proposed quality targets are not achieved results.
 
-## Architecture decision
+MarketPrice stays one project. The guided workspace and deterministic listing preview were merged in PR #4 (main commit aaa03619f7757e20addd509f723cbc735cbf4d01). Its 287 passing software tests establish implemented behavior, not semantic quality, keyword coverage or sales improvement. The preview currently checks wording, identities and explicit quantities. It does not implement the research or drafting system specified below.
 
-Keep one MarketPrice repository and add an independently testable Listing Intelligence workspace. Reuse identity, file safety, audit exports and optional pricing context. Isolate listing models, evidence, policy rules, keyword selection and drafting from the Decimal pricing engine. A content-only job requires no purchase cost.
+## 1. Two workflows, one evidence system
 
-A future standalone listing interface can use the same library. Split repositories only if deployment, ownership, permission boundaries or release cadence justify the maintenance cost. Do not fork the financial code or mix listing quality into margin calculations.
-
-The local prototype is an offline lexical checker. It is not a semantic relevance engine, competitor researcher or production copy generator. The prior local full suite reported nine UI failures, while GitHub main had passing CI. Reconcile the local/GitHub difference before promoting prototype code.
-
-Suggested module boundaries (proposed, not implemented): listings/contracts, imports, evidence, competitors, keywords, policies, drafting, review, exports; connectors/amazon and connectors/google. Prefer one deployable application with clear internal modules initially.
-
-## Outcome and trust contract
-
-Goal: reduce active seller preparation time from hours to minutes for routine, evidence-complete products. Measure preparation, data gathering, waiting, review and corrections separately. Do not hide work in manual preprocessing. Cold-start authorization or missing specifications cannot be promised as a minutes-long job.
-
-The system should produce an editable, evidence-backed draft, not a guarantee of accuracy, rankings or increased sales. It must abstain on unsupported facts. Commercial keyword signals can prioritize supported terms but cannot make a false product claim acceptable.
-
-Statuses: NEEDS_FACTS, RESEARCH_INCOMPLETE, READY_FOR_REVIEW, APPROVED. Only an authorized reviewer can set APPROVED for a specific content/evidence/rule snapshot. A changed input invalidates approval. No automatic publishing in the initial release.
-
-
-## Default operating mode: generic products, no Google Ads
-
-Owner clarification: most products are generic/unbranded, and no Google Ads access is available. Google Ads and Brand Analytics are optional enrichments, never prerequisites for the base workflow. The product must remain usable when neither is connected.
-
-### Source ladder
-
-1. Product truth: import supplier specifications, actual dimensions/materials/pack count, compatibility evidence and seller-confirmed facts. A generic product still needs evidence; no substitute source can manufacture missing specifications.
-2. Amazon public category research: use permitted observations or supplied/licensed exports of comparable listings, category vocabulary, visible attributes, available category BSR, customer questions/review themes and suggestions. Retain source/time/store and collection method. Reviews are possible buyer concerns, not verified claims about our product. Do not copy competitor copy, infer private backend keywords, equate autocomplete position with volume, or build around bypassing CAPTCHAs/undocumented endpoints.
-3. Amazon Product Opportunity Explorer, when accessible: current US official guidance identifies Professional sellers as the eligible audience, making it an avenue to check separately from Brand Analytics. Use available niche/query evidence from permitted exports or recorded observations, with niche scope and period preserved. UAE has official guidance/announcements too, but actual account availability, export functions and marketplace coverage must be verified rather than assumed. No automated connector is claimed.
-4. Google Trends CSV exports: compare relevant terms within the same geography, category, search type and time window; keep US and UAE separate. Preserve the original comparison group and normalization context. Interest is relative, not monthly search counts. A zero or absent low-volume term is not proof of zero demand. English and Arabic UAE terms need separate intent validation, not literal translation.
-5. Google public search: discover terminology and intent from relevant source pages using permitted access; search-result snippets are incomplete evidence. Record observation context. Do not count estimated search-result totals as keyword demand or fabricate a competitor's Search Console data.
-6. Optional later evidence: seller advertising/search-term reports if campaigns exist, or a licensed third-party provider only after confirming US/UAE coverage, methodology, export/API rights, privacy and cost. Label third-party volumes/ranks as estimates. No subscription, account creation or ad spending is required or authorized by this plan.
-
-### Output without privileged metrics
-
-Produce product-supported keyword candidates, exclusions, comparison notes, placement plans and reviewable copy even when volume is unavailable. Show separate dimensions: factual relevance, source corroboration, trend coverage, marketplace-rule coverage and review status.
-
-Use evidence labels such as PRODUCT_SUPPORTED, OBSERVED_IN_COMPARABLES, RELATIVE_TREND_AVAILABLE and DEMAND_UNMEASURED. These are provenance labels, not calibrated probabilities or interchangeable measures of demand. Competitor phrase frequency is only a cohort observation, not conversion evidence.
-
-Choose the supported phrase that best identifies the product and buyer intent. Use a documented tie-break based on specificity, clarity and nonredundancy when demand cannot distinguish candidates. Say why it was selected; do not invent an “optimal keyword” verdict.
-
-### Generic-product controls
-
-- Record branding status explicitly: branded, generic or unknown. Truly generic means no identifiable brand on the product or packaging; absence of Brand Registry alone does not establish that a product is generic.
-- Use Amazon's applicable generic brand-field value. Do not demand that the title contain the literal word Generic, fabricate a brand, or promote competitor brand names as the product's own identity.
-- Treat compatibility language separately from branding. It needs factual evidence and current marketplace-specific policy review; never blindly strip all brand mentions or freely add popular brands.
-- Do not automatically join another seller's generic listing or rebrand an existing generic ASIN. Amazon's generic-product guidance describes restrictions on both. Validate destination/store policy before listing operations.
-- GTIN exemption and category/store eligibility remain separate from copy quality; do not promise exemptions or treat blank GTIN as approved.
-- Preserve raw brand values in the audit and show any proposed destination normalization explicitly.
-- The local lexical prototype was corrected so Generic/Unbranded/No brand do not trigger a missing-brand-in-title suggestion. This local change is not included in the documentation-only PR; production code integration still requires reconciliation.
-
-### Acceptance criteria for this mode
-
-The no-credentials path must complete an evidence-labeled draft without Ads or Brand Analytics. Missing metrics remain null/unavailable and cannot become zero, fabricated volume or a paid-service dependency. Generic-brand tests must prevent fabricated branding and unnecessary Generic title suggestions while preserving checks on actual models and real brands. Tests must cover unverified compatibility, insufficient Trends data, different comparison scales, stale observations and US/UAE separation.
-
-First implementation should use CSV/XLSX evidence imports and explicit source mapping; it should not claim that research acquisition is already automated. Reuse per-category research where licensed and current, while rechecking product-specific facts. Measure import preparation and reviewer time as part of the hours-to-minutes objective.
-
-Sources verified 17 November 2026:
-- [Amazon generic-product guidance](https://sell.amazon.com/blog/sell-generic-products)
-- [Amazon title FAQ, including unbranded products](https://sellercentral.amazon.com/gp/help/external/YTR6SYGFA5E3EQC?mons_sel_locale=en_US)
-- [Product Opportunity Explorer eligibility, US](https://sellercentral.amazon.com/help/hub/reference/external/GNJ4YRTXWLMBY38U?locale=enUS)
-- [Product Opportunity Explorer, UAE announcement](https://sellercentral.amazon.ae/seller-forums/discussions/t/1084cdf2-750a-4e57-b674-72b6388e9036)
-- [Google Trends CSV exports](https://support.google.com/trends/answer/4365538?hl=en)
-- [Google Trends comparisons](https://support.google.com/trends/answer/4359550?hl=en)
-
-## Source matrix: what each signal means
-
-| Source | Use | Access and limits |
+| Workflow | Input | Reviewable output |
 |---|---|---|
-| Manufacturer/merchant specifications | Product identity, variant, dimensions, materials, included items, supported benefits | Evidence reference per fact; distinguish seller assertion from verified documentation; competitor text is not proof about our product |
-| Amazon Search Query Performance | Marketplace-specific query funnel evidence for eligible brands/products | Authorized SP-API Brand Analytics role and Brand Registry; validate availability/report periods for each marketplace |
-| Amazon advertising search-term exports | Observed paid queries and attributed outcomes | Seller-authorized exports or Ads API access; retain attribution window, match type and sample size; not organic demand |
-| Amazon Catalog Items | Comparable product attributes and available sales ranks | Authorized API; salesRanks are category sales positions, not keyword ranks or monthly unit estimates |
-| Amazon product pages/autocomplete | Buyer vocabulary and possible candidates | Only permitted access or supplied/licensed exports; autocomplete ordering is not search volume; no undocumented endpoint dependency |
-| Google Ads Keyword Planner | Regional keyword ideas and approximate Google search demand | OAuth, Ads account and developer-token access; retain geography, language, network, period and close-variant grouping |
-| Google Trends | Direction, seasonality and regional interest | UI exports use relative normalization; separate exports may not be comparable. Official API is alpha with access application and different scaling |
-| Google Search Console | Actual query performance for an authorized owned site | Not competitor queries; top-row/privacy limitations and attribution differences |
-| Google search observations | Search intent, category vocabulary and page patterns | Timestamped locale/device observations through permitted access; a search snippet is not a complete or unbiased competitor dataset |
+| Improve an existing listing | Original listing, exact variant facts, marketplace/category/language, available research and performance evidence | Field-by-field findings; keep/change/remove decisions; before/after copy; explanation and sources for each change |
+| Create a new listing | Verified product facts, supported benefits, included items, marketplace/category/language | Item name, Item Highlights, bullets, description, permitted search terms and required structured attributes; unresolved fields remain explicit |
 
-Do not sum Google and Amazon volumes, treat Ads competition as organic difficulty, convert BSR into unit sales without an explicitly labeled calibrated model, or infer keyword causality from a successful competitor.
+Shared sequence: identify product → validate facts → research market → review keywords → allocate fields → draft → independently validate → seller review → export → measure outcomes.
 
-Official evidence:
-- [Google historical metrics](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics)
-- [Google Ads authorization](https://developers.google.com/google-ads/api/rest/auth)
-- [Google Trends alpha](https://developers.google.com/search/apis/trends)
-- [Trends data interpretation](https://support.google.com/trends/answer/4365533?hl=en)
-- [Search Console data limitations](https://support.google.com/webmasters/answer/96568)
-- [Amazon Analytics reports](https://developer-docs.amazon/sp-api/docs/report-type-values-analytics)
-- [Amazon Catalog Items](https://developer-docs.amazon/sp-api/lang-en_us/reference/searchcatalogitems)
-- [Amazon BSR explanation](https://sell.amazon.com/blog/amazon-best-sellers-rank)
+No current price or purchase-cost data is required for content-only work. A future standalone interface can reuse these modules, but there is no reason to duplicate the financial application.
 
-## Workflow: analyze before drafting
+## 2. What the evidence can establish
 
-### 1. Establish the product truth
+| Signal | Legitimate use | Must not be interpreted as |
+|---|---|---|
+| Product specifications and supporting documents | Identity, material, dimensions, capacity, compatibility and supported claims for this exact variant | Automatically verified because an old listing or supplier used the wording |
+| Amazon BSR | Category-relative sales position; help identify relevant comparison products | Keyword rank, keyword volume, absolute unit sales or proof that wording caused sales |
+| Amazon autocomplete | Observed candidate phrases under a recorded search context | An exhaustive list or numerical monthly search volume |
+| Visible competitor listing text | Vocabulary, information structure and claims made by that competitor | Hidden backend keywords, search demand or facts about our product |
+| Organic search positions | Observed visibility for a specific query, store and context | A stable universal rank or proof of keyword causality |
+| Product Opportunity Explorer | Amazon niche/query/product demand evidence within its reported scope | All searches, all purchases or an unrestricted public API |
+| Search Query Performance | Authorized query funnel evidence, when eligible | Guaranteed availability to generic sellers or interchangeable advertising metrics |
+| Third-party keyword volumes/ranks | Provider measurements or estimates with provenance | Official Amazon counts unless explicitly sourced and entitled as such |
+| Google keyword metrics | Approximate Google demand for specified geography, language, network and period | Amazon demand or guaranteed clicks/sales |
+| Google Trends | Relative interest, direction and seasonality under its scale/context | Absolute searches; missing/low-volume zero is not proof of no demand |
 
-Import catalog text separately from reference facts. Required identity: marketplace, seller/account context, SKU, ASIN if available, parent/child variant, product type and language. Gather brand, model, use case, material, dimensions/capacity, compatibility, pack count, included/excluded items and evidence-backed differentiators.
+Amazon describes BSR as sales-based and distinguishes it from search rank. Compare BSR only within the same store/category context; keep category identifiers and observation time. [Amazon BSR](https://sell.amazon.com/blog/amazon-best-sellers-rank).
 
-Highlight missing or contradictory facts. Never turn an existing marketing claim or competitor assertion into verified evidence. Existing listing text is a claim to review. Preserve original values, source file hash and sheet/cell or JSON pointer.
+Google explicitly describes monthly search counts as approximate and may group close variants. Never add grouped variants together as independent demand. Google and Amazon metrics must stay in separate columns. [Google historical metrics](https://developers.google.com/google-ads/api/docs/keyword-planning/generate-historical-metrics).
 
-### 2. Build a comparable competitor cohort
+Google autocomplete considers context and is not simply a most-searched list. Apply the conservative rule to suggestion imports: only claim the observed phrase and context, without inventing popularity. [Google autocomplete](https://blog.google/products-and-platforms/products/search/how-google-autocomplete-predictions-work/).
 
-Filter by marketplace, leaf category, actual product type, intended use, compatibility, pack size, condition and comparable price tier. Separate parent/child records and deduplicate families. Include varied sellers and performance levels to reduce bestseller-only selection bias.
+## 3. Practical acquisition without a Google Ads account or registered brand
 
-Record ASIN, title/highlights/bullets, attributes, price/currency, availability, rating count, category path, BSR category/value, observation time and source. Record organic keyword position separately, with query, locale, device and sponsored status when available. Missing fields remain missing. Do not compare BSR numbers across categories/stores.
+Start with source exports and permitted observations. Add automation only where access, coverage and usage rights have been verified.
 
-Start with a reviewed small cohort (e.g. 10–20 comparable families) as a pilot design, not a statistical standard. Report exclusions and coverage. Extract recurring buyer concepts and potential information gaps without copying distinctive competitor wording or borrowing competitor brand terms.
+1. **Product truth:** catalog/supplier documents, seller-confirmed specifications and evidence references. Confirm generic versus branded status independently of Brand Registry membership. Do not fabricate branding or imply compatibility from a popular query.
+2. **Amazon first-party research:** Product Opportunity Explorer is the first eligibility check for a Professional seller. UAE guidance explicitly confirms Professional-seller access and describes downloads. Verify the actual account, store and export fields before building an import mapping. US guidance also describes niche demand and purchasing insights. [UAE FAQ](https://sellercentral.amazon.ae/help/hub/reference/external/G7G4RNVTPQ9CWV39), [UAE research/download announcement](https://sellercentral.amazon.ae/seller-forums/discussions/t/1084cdf2-750a-4e57-b674-72b6388e9036), [US tool](https://sell.amazon.com/tools/product-opportunity-explorer/).
+3. **Comparable listings and suggestions:** import permitted public observations or licensed exports. Store ASIN, product family, category, BSR, price/pack, copy, context and timestamp. Do not depend on undocumented autocomplete endpoints, intercepted seller sessions or bypassing access controls. Authorized Catalog Items API reads can supply available attributes, relationships and sales ranks; they are not consumer search-result rankings. [Catalog Items](https://developer-docs.amazon/sp-api/docs/catalog-items-api-v2022-04-01-reference).
+4. **Google without personal Ads access:** Google Trends exports provide relative evidence. A commercial Google keyword-data API can provide provider-supplied demand metrics without connecting the seller's Google Ads account. DataForSEO documents Google Ads-derived volume, location/language parameters and separate provider credentials. This is a candidate integration, not a tested connection or a free service. [DataForSEO API](https://docs.dataforseo.com/v3/keyword_data-google_ads-search_volume-task_post/), [provider access example](https://dataforseo.com/help-center/build-a-keyword-research-template-with-search-volume-data-api).
+5. **Optional Amazon keyword provider:** Helium 10's coverage page lists Cerebro and Magnet for both US and UAE. Start by validating permitted exports; the coverage table does not establish a public embedding API or redistribution rights. Keyword Tool documents suggestions and explicitly estimated Amazon volume via API. Test its specific country/language endpoint behavior before selecting it for UAE. [Helium 10 coverage](https://kb.helium10.com/hc/en-us/articles/360036359334-Which-Tools-Are-Supported-in-Which-Markets), [Keyword Tool API](https://keywordtool.io/api).
+6. **Optional privileged analytics:** SP-API Search Query Performance lists US and AE, but requires Brand Analytics role and Brand Registry. It cannot be the default dependency for this user's generic products. [Amazon Analytics reports](https://developer-docs.amazon/sp-api/docs/report-type-values-analytics).
 
-### 3. Create the keyword evidence ledger
+No supplier has been connected, purchased or independently accuracy-certified. Validate providers with the same representative US-English, UAE-English and UAE-Arabic query sets: coverage, correct store attribution, timestamps, unknowns versus zeros, repeated-request stability, provenance, estimates, cost, latency, quotas, export/API rights and allowed retention. Check source lineage: two vendors using the same upstream dataset are not independent corroboration. Reject silent worldwide/US fallbacks for UAE requests.
 
-Collect candidate phrases from product facts, eligible Amazon query reports, ads exports, competitor concepts, permitted suggestions and Google research. Analyze phrases individually; do not select single words in isolation when intent depends on the full phrase.
+Google Trends website data is normalized; separate exports cannot be naively compared. Preserve the comparison set, region, category, search type and time range. Its official API remains an access-limited alpha and uses a different scaling model, so it is not an assumed production dependency. [Trends interpretation](https://support.google.com/trends/answer/4365533?hl=en), [Trends API](https://developers.google.com/search/apis/trends).
 
-Each candidate needs:
-- Original phrase, normalized phrase, language and marketplace.
-- Intent label: exact product, valid use case, substitute, accessory/complement, incompatible, ambiguous.
-- Matched product facts, contradictory facts and evidence IDs.
-- Source-specific metrics, units, periods, geography, retrieval time and missingness.
-- Policy/trademark/unsupported-claim flags.
-- Decision: INCLUDE, EXCLUDE or REVIEW, with reason and reviewer.
-- Proposed placement and what information the phrase adds.
+If measured demand is unavailable, the application must still offer a factual draft labeled **Demand unmeasured**. It must not label its selected terms “most searched.”
 
-A phrase such as “1 litre insulated bottle” fails if the product is documented as 500 ml and insulation is unverified, regardless of search demand. “Water flask” may be a valid synonym despite poor lexical overlap, so it needs semantic review rather than automatic rejection.
+## 4. Product facts before keyword selection
 
-First apply hard factual/policy filters. Then compare relevant phrases within the same source/market/period using buyer intent, observed demand, conversion evidence, seasonality, distinct coverage and readability. Do not assign arbitrary universal weights or display an uncalibrated confidence percentage. Preserve raw metrics and explain tie-breaks. Deduplicate close variants without double-counting grouped Google metrics.
+Represent each fact separately: fact ID, attribute, value/unit, variant, source, source location, verification method, reviewer and status (confirmed, contradicted, unknown). An uploaded listing is a set of claims to assess, not its own proof.
 
-### 4. Build a field placement brief
+Required identity includes SKU, ASIN when available, market, product type/category, language, parent/child variant, brand status, pack count and included items. Category-specific facts include material, dimensions, capacity, intended use, compatibility and supported differentiators. Required facts depend on product type; missing certification, safety, durability or performance evidence must not be filled by model inference.
 
-Title: product identity, primary relevant phrase and distinguishing variant facts, within the applicable rule pack.
-Item highlights: complementary supported attributes; not a duplicate keyword list.
-Bullets: one buyer question/benefit per point, backed by specifications; include compatibility, use, construction and included items where relevant.
-Description: coherent explanation, appropriate use, limitations and details not clearly covered elsewhere.
-Backend search terms: only permitted relevant terms under current field limits; do not expose or infer competitor private terms.
+Detect conflicts between file columns, product documents and images. Images may suggest an attribute for confirmation but cannot establish hidden material, certification or performance. Benefits must follow supported facts without strengthening them: a listed material alone cannot establish “leakproof,” “food safe,” “medical grade,” or a promised service life.
 
-Every selected phrase has a placement rationale. Not every accepted keyword must appear verbatim. Natural language and factual clarity take priority over repeated exact matches. Preserve negation (“not compatible”) and conditional claims.
+## 5. Comparable products and keyword decisions
 
-### 5. Draft, validate and review
+Use two comparison groups: products satisfying the same buying intent, and products similar enough for attribute/wording comparison. Keep substitutes and accessories labeled separately.
 
-Generate a small number of bounded alternatives from approved facts and the placement brief. Every new factual claim must link to evidence. A separate validation pass checks brand/model/variant, numbers/units, pack counts, exclusions, prohibited claims, current schema limits, repetition, translation drift and unsupported additions.
+A proposed starting cohort is 10–20 independent product families per category/store, subject to available evidence. This is a research design, not a universal optimal count. Include relevant bestsellers and ordinary competitors; avoid bestseller-only selection bias. Match use, material, size/pack and price tier where relevant, deduplicate variants/sellers, label sponsored observations, and preserve why each product was included or excluded. BSR helps select and describe the cohort; it never becomes a multiplier that makes a keyword factually acceptable.
 
-US and UAE drafts are separate. Arabic requires native-language evaluation, RTL preview and mixed-script/model-number tests. Translating US keywords is not UAE keyword research. Do not mix languages into an Amazon field without verified support.
+Generate candidate phrases from confirmed product identity, relevant autocomplete observations, first-party queries, comparable copy and Google research. Generated synonyms are candidates requiring evaluation; they are not observed searches.
 
-Amazon's 2026 public FAQ describes 75-character Item name and 125-character Item highlights. Resolve store/product-type applicability and exceptions using current schemas/help before enforcing these on UAE. Do not silently apply the old universal 200-character title rule or assert UAE rollout from US guidance alone.
-Sources: [title update](https://sellercentral.amazon.com/seller-forums/discussions/t/4ba9a173-d896-4b69-81fb-57e148f98356), [Product Type Definitions](https://developer-docs.amazon/sp-api/lang-en_EN/docs/product-type-definitions-api), [validation preview](https://developer-docs.amazon/sp-api/lang-en_us/docs/preview-errors-before-creating-a-listing).
+For each phrase, perform this decision sequence:
 
-Present original versus proposed text, included/excluded keyword reasons, unresolved risks and data freshness. Preview validation is useful but does not prove eventual publication or search performance.
+1. Resolve meaning, product intent and language; retain the raw phrase alongside normalization.
+2. Classify the relationship: exact product intent, plausible synonym, substitute, accessory/complement, irrelevant or uncertain.
+3. Check every attribute implied by the phrase against this variant's facts. Wrong capacity, material, audience, compatibility or pack size blocks placement, regardless of volume.
+4. Check applicability of marketplace/category rules and branding restrictions.
+5. Attach comparable evidence, direct demand or estimates, trend context and freshness separately.
+6. Choose a destination and explain include/exclude/needs-review. An accessory phrase can be useful research yet unsuitable as a main-product keyword.
 
-### 6. Export and learn
+Rank only eligible phrases. Prefer exact product identity and buyer intent, then comparable Amazon demand where actually available, specificity and coverage; use Google evidence as a secondary signal. Avoid redundancy and preserve readability. Compare metrics only when provider, definition, scope and period are compatible. Do not invent weighted SEO scores or claim calibrated confidence from an LLM's self-rating. If weights are introduced later, fit and validate them on held-out decisions and test sensitivity.
 
-Export a review workbook: Product_Facts, Evidence, Competitor_Cohort, Keyword_Decisions, Placement_Plan, Drafts, Validation, Approvals and Sources. A separate platform upload artifact is generated only after validation against the actual destination schema. Never treat a generic audit workbook as an Amazon upload template.
+Illustrative reasoning only, not measured keyword demand: for a confirmed non-insulated 500 ml steel bottle, “500 ml steel water bottle” can be eligible; “1 litre insulated bottle” conflicts with facts; “bottle cleaning brush” is an accessory intent. “Water flask” needs semantic/local-language review rather than automatic rejection for word mismatch. “Best water bottle” may reveal research intent without making “best” acceptable listing copy.
 
-Retain content versions and subsequent outcomes. Where the store/account/product is eligible, use Amazon Manage Your Experiments; otherwise call observational before/after comparisons observational and track price, stock, ads and seasonality confounders. Check UAE availability independently. [Amazon experiments](https://sell.amazon.com/tools/manage-your-experiments).
+The keyword table should show phrase, market/language, semantic decision, supporting/conflicting fact IDs, observed source, Amazon demand/rank, Google demand/trend, freshness, proposed placement and reason. Missing measurements stay null.
 
-## Evidence contract and safety
+## 6. Field-specific writing and policy checks
 
-An evidence record requires: evidence_id, product_id/query, provider, source_reference, marketplace, country, language, observed_at, period_start/end if relevant, metric_name, value or explicit unavailable status, unit/currency, collection_method, source_hash, usage_rights, and any sampling/grouping limitations.
+Amazon's official US and UAE announcements both state a July 27, 2026 change to 75-character titles for non-media categories and an additional 125-character searchable Item Highlights field. These are distinct fields. The linked detailed UAE help page required sign-in during this review; category-specific schemas and applicability still need authenticated verification. [US announcement](https://sellercentral.amazon.com/seller-forums/discussions/t/145b6d0f-999c-4555-896c-c694bda2e470), [UAE announcement](https://sellercentral.amazon.ae/seller-forums/discussions/t/2f40628c-eb97-4b24-b983-cb1e331e06dc).
 
-Never compare values with incompatible units or time/geography contexts. Null is not zero. Store USD and AED separately. Snapshot policy, prompt, model and evidence versions for reproducibility. Source freshness is metric-specific and shown to users; choose refresh schedules from pilot needs rather than pretending one universal TTL is valid.
+| Field | Writing responsibility |
+|---|---|
+| Item name | Accurately identify the product with the strongest eligible core phrase and essential variant distinction; include brand only when appropriate |
+| Item Highlights | Concise, supported differentiators/material/use details that complement the title |
+| Bullet points | Answer purchase questions with evidence-backed features, benefits, size/fit, compatibility, included items and relevant limitations; avoid repeating one keyword list |
+| Description | Coherent explanation of use, fit, care and specifications supported by facts; resolve likely buyer uncertainty |
+| Backend search terms | Eligible synonyms/alternate vocabulary under current field rules; no hidden competitor-brand targeting or keyword stuffing |
+| Structured attributes | Correct category, material, dimensions, color, capacity and variation fields; prose does not replace these |
 
-No costs, customer/order PII, tokens or ignored spreadsheet columns are sent to a content model by default. External providers receive an allowlisted payload after configuration review. Secrets remain in tenant-scoped secure storage. Protect logs, caches, embeddings and exports; define retention and deletion.
+Do not hard-code universal bullet counts/limits or assume US rules apply to UAE. Fetch and version product-type requirements per marketplace and validate destination attributes. Distinguish UI labels from API fields, count characters/bytes according to the actual constraint, and retain schema/rule versions. [Amazon listing schemas](https://developer-docs.amazon/sp-api/lang-en_US/docs/manage-product-listings-guide).
 
-Process files with resource limits; never execute formulas/macros. Export literal spreadsheet text. Treat all product/competitor content as untrusted input, not instructions. Models have no publishing permissions. Permit only authorized outbound providers; enforce SSRF protections, timeouts, response limits, retry budgets and cancellation. OAuth failures and partial pagination produce incomplete research, not fabricated evidence.
+For UAE, research English and Arabic separately, including local synonyms and relevant transliteration; bilingual reviewers decide whether phrasing is natural. Do not transfer US volumes or mechanically translate a US keyword list. Keep output locales separately reviewable.
 
-Initial connectors may use verified source exports. Live automation requires legitimate provider credentials/eligibility and a successful authorized smoke test. No proxy-based bypass, scraped seller sessions or unapproved paid services.
+Generate a structured draft with claim-to-fact and phrase-to-evidence references. Then run independent deterministic checks for identity, values, units, contradictions, field limits, duplicates and prohibited content, plus semantic review. A second model can flag issues but cannot be the sole certification mechanism. Reject unexpected fields and instructions embedded in documents. A failed check returns a correction request, not silently rewritten facts.
 
-## Phased implementation and acceptance
+## 7. Site experience and trust status
 
-1. Foundation/reconciliation: integrate the existing listing prototype into a clean branch from GitHub main, resolve UI regressions, and establish separate listing/evidence contracts. Gate: full suite plus no-loss CSV/XLSX mapping and export tests.
-2. Evidence imports: product facts, Amazon research exports and Google exports with user-visible mapping and provenance. Gate: totals/units/periods reconcile with source; malformed and missing evidence never silently becomes zero.
-3. Research brief: comparable cohort, phrase-level relevance decisions and placement rationale. Establish a lexical baseline and adjudicated semantic test set. Gate: publish false-inclusion/false-exclusion results per market/language and unsupported-claim counts.
-4. Draft/review workflow: constrained copy variants, independent validators, reviewer decisions and invalidation. Gate: every factual addition has evidence; tested critical mismatches block approval; unknown applicability stays unresolved.
-5. Authorized API reads: validate quotas, 429/timeouts, token revocation, pagination, incomplete data and account separation with mocks, followed by authorized live smoke tests. Gate: no silent incomplete catalogs or cross-tenant access.
-6. Seller pilot and optional publishing: benchmark active end-to-end time and correction rate against existing workflow. Add publishing separately with explicit approval, stale-content checks, bounded updates and post-submit reconciliation.
+Home → Listing Intelligence → **Improve listing** or **Create listing**.
 
-A proposed pilot goal is median active review-ready preparation under 10 minutes per evidence-complete routine SKU, with no worse expert-rated factual quality than the manual baseline. This is a target, not a measured result. Record p50/p95 active and wall time, setup costs, reviewer edits and severe errors; do not claim success from model latency alone.
+1. Product: upload/map files or enter facts; select store/category/language.
+2. Facts: resolve contradictions and missing attributes once for the exact variant.
+3. Research: show available sources, dates and missing coverage; allow cohort review.
+4. Keywords: include/exclude decisions with reasons, demand source and field placement.
+5. Draft: editable field cards, before/after changes for improvement, length indicators and clickable supporting evidence.
+6. Review/export: show blocking issues and warnings separately, then export the draft plus evidence workbook. Save versioned review decisions.
+7. Results: optionally import authorized performance reports and compare outcomes with uncertainty.
 
-Use ESCI for public query–product relevance sanity checks, not current marketplace policy or conversion prediction. Add independently reviewed English/Arabic UAE cases, product-family holdouts and adversarial examples. Evaluation must include tempting high-volume irrelevant phrases, wrong variants, misleading compatibility, stale data and malicious spreadsheet content.
+Use separate indicators for factual coverage, keyword relevance, market-data coverage, rule coverage and measured business outcomes. Do not compress them into one “95/100 optimized” badge.
 
-## Initial backlog
+Statuses: NEEDS_FACTS → RESEARCH_INCOMPLETE or READY_FOR_REVIEW → APPROVED_FOR_EXPORT. Approval belongs to a person and a fixed content/evidence/rule snapshot. Changed inputs invalidate approval. A limited-data draft may be reviewed/exported with its explicit limitations, but it must not receive a demand-validated label. Publishing is a separate later capability requiring approval and post-submission checks.
 
-- [ ] Reconcile local prototype and GitHub; repair the nine known local UI-test mismatches.
-- [ ] Define ListingRecord, ProductFact, ResearchEvidence, KeywordDecision and Approval contracts.
-- [ ] Add US/UAE marketplace profiles with unresolved rules visible.
-- [ ] Add source-export mapping, evidence coverage and freshness reports.
-- [ ] Build competitor cohort review and keyword include/exclude ledger.
-- [ ] Build bilingual evaluation corpus and frozen holdout.
-- [ ] Add placement brief, evidence-constrained drafts and edit comparison.
-- [ ] Validate source API access per account; integrate read-only connectors incrementally.
-- [ ] Run timed seller pilot and publish limitations alongside results.
+## 8. Benchmarks and release gates
 
-## Work completed for this proposal
+Use public research to design evaluation, not to claim that another system's result is MarketPrice's result.
 
-Reviewed current main, the local prototype and official Google/Amazon documentation. Defined the market scope, architecture, evidence workflow and release gates. This draft contains no merchant data, credentials or performance claims.
+- **ESCI:** Amazon Science supplies real human-labeled query/product pairs for Exact, Substitute, Complement and Irrelevant relevance, including US English. Use its held-out queries to test candidate relevance and accessory/wrong-product mistakes. It does not supply UAE/Arabic coverage, current demand, current policies or evidence that generated listing copy increases conversion. [Official dataset and baseline](https://github.com/amazon-science/esci-data).
+- **2026 PRECISE research:** combines human labels with model judgments to reduce evaluation bias. The design implication is to retain human gold labels and uncertainty estimates rather than letting a writer model approve itself. Its performance results do not transfer to our drafts. [AAAI 2026 paper](https://cdn.amazon.science/45/33/92bf4af4492e8d058045c19bd5f9/precise-aaai-2026-camera-ready.pdf), [June 2026 follow-up](https://arxiv.org/abs/2606.05308).
+- **Our own gold set:** product facts, permitted market observations, accepted/rejected keywords and reviewed field drafts for US English, UAE English and UAE Arabic. Two independent qualified reviewers, blind comparisons and adjudication of disagreements. Keep product families and queries separate across development/test splits; include temporal holdouts. Public benchmarks may have appeared in model training, so retain fresh private cases.
 
-No live Ads, Trends, SP-API or seller account was connected. Postman discovery status failed with a local keychain error; Orbit discovery could not resolve its host. Official provider documentation was used as fallback. These discovery failures do not establish anything about provider availability to an authorized production account.
+Compare current lexical baseline, semantic relevance plus hard constraints, and constrained drafting using the same cases. Evaluate keyword precision/recall, Precision@5, graded ranking quality where applicable, contradiction detection, unsupported-claim rate, policy violations, appropriate abstention, reviewer edits, source coverage, cost, p50/p95 latency and total active seller time. An abstaining system cannot pass on precision alone: report coverage and missed useful terms too.
 
-Product category, evidence availability, seller API eligibility and pilot catalogs remain needed before a product-specific research pass. Obtain secrets only through secure configuration, not chat or spreadsheets.
+Proposed initial gates, to be validated with the pilot rather than advertised as achieved:
+
+| Gate | Proposed requirement |
+|---|---|
+| Evidence | Every factual addition and every numerical demand claim has a traceable source and correct scope |
+| Critical defects | No observed invented safety/certification claims or wrong-product/variant additions in the release test set; report sample size and confidence bounds, not “zero risk” |
+| Keyword quality | Target at least 98% precision among accepted core phrases, with coverage and uncertainty reported separately per market/language |
+| Deterministic checks | All applicable tested rules pass; unknown applicability remains unresolved |
+| Robustness | Missing/stale data, provider outages, wrong geography and malicious content never produce fabricated success |
+| Efficiency | Proposed median active preparation under 10 minutes for evidence-complete routine SKUs, including review; measure cold-start gathering separately and report p95 |
+| Business effect | No claimed conversion/sales uplift until an appropriately designed study supports it |
+
+Start a reviewed pilot with 50 product families per market/language track; this is discovery, not enough to prove rare-error safety. Expand sample sizes according to observed errors and the required confidence. Account for repeated queries/variants when calculating uncertainty. Do not choose the model from a generic chatbot leaderboard.
+
+## 9. Learn from actual market response
+
+Freeze content version and deployment time. Where data permits, measure query-level impressions, clicks and purchases using the report's own definitions, plus sessions, ordered units, returns and profit context. CTR is clicks/impressions only when both use the same scope. Orders/clicks and units/sessions are different measures; label denominators and attribution windows. Do not infer organic CTR from BSR or invent it when reports are unavailable.
+
+Record price, promotions, ad spend, stock, delivery terms, reviews and seasonality because they can change performance independently of text. Predefine primary metric, minimum detectable change, duration and stopping rule. Prefer randomized listing experiments when actually eligible. Amazon Manage Your Experiments requires Brand Registry representation and eligible ASINs; generic products cannot assume access. [Amazon experiments](https://sell.amazon.com/tools/manage-your-experiments).
+
+For ineligible products, use staged rollout and comparable unchanged controls where feasible. Report results as observational unless the design justifies a causal claim. Do not present a one-week before/after sales increase as proof. Keep rollback snapshots, monitor factual complaints/returns, and require adequate evidence before promoting a new keyword/writing policy.
+
+## 10. Engineering, privacy and delivery order
+
+Separate modules: product facts, source adapters, competitor cohorts, keyword decisions, marketplace policies, drafts, review snapshots, exports and outcomes. Reuse MarketPrice's file safety and evidence exports. Keep listing logic isolated from monetary calculations.
+
+Core records: ProductFact; ResearchObservation (provider and upstream source, source type/URL or file hash+cell, market, language, category, query/ASIN, metric definition/unit, period, observed time, estimate flag, coverage and access rights); KeywordDecision; DraftClaim; RuleSnapshot; ReviewSnapshot; OutcomeObservation.
+
+Source adapters return explicit COMPLETE/PARTIAL/UNAVAILABLE states. Enforce timeouts, retry budgets, pagination completeness, quotas, bounded responses, cancellation and per-tenant cache keys. Use provider allowlists and SSRF defenses for URL imports. Store secrets server-side, exclude them from logs, and define retention/deletion for files, text, embeddings and exports. Models receive only approved product fields; financial/customer data and ignored workbook columns are excluded. Never execute workbook formulas/macros or instructions embedded in retrieved text. Generated text cannot choose outbound destinations or publish listings.
+
+Build in this order:
+
+1. Evidence/fact contracts and mapped source imports; tests for units, provenance, stale/wrong-market data and null metrics.
+2. Comparable cohort and keyword decision table; public ESCI baseline and fresh US/UAE reviewer cases.
+3. Marketplace/category policy registry; verify current schemas and export targets.
+4. Constrained creation and improvement workflows with claim checks, revision diffs and approval invalidation.
+5. Provider integrations selected through documented coverage/rights/cost validation, tested with failure fixtures and authorized live reads.
+6. Timed seller pilot and performance-report feedback; public release claims limited to measured evidence.
+
+This research pass reviewed official documentation and research papers. No live seller dataset, authenticated keyword API, model benchmark or market experiment was run. The next engineering milestone is the evidence and keyword-decision layer, followed by drafting; the existing lexical checker is not a substitute for either.
