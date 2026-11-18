@@ -136,3 +136,21 @@ def test_xlsx_upload_ui(monkeypatch):
     assert any(i["code"] == "QUANTITY_CONFLICT" for i in result["Listing_Issues"])
     app.button(key="clear_session").click().run()
     assert "listing_result" not in app.session_state
+
+
+def test_review_on_partial_catalog_and_numbered_bullets():
+    rows = [{"sku": "test", "title": "Opener", "bullet_1": "1. Works on any lid",
+             "bullet_2": "2. High-quality grip for 12 cm lids", "description": ""}]
+    result = review_listings(rows)
+    issues = result["Listing_Issues"]
+    assert [i["observed"] for i in issues if i["code"] == "CONTENT_COMPLETENESS_REVIEW"] == ["description"]
+    assert result["Check_Coverage"][0]["content_fields_not_supplied"] == "highlights"
+    assert [i["field"] for i in issues if i["code"] == "MEASUREMENT_SCOPE_REVIEW"] == ["bullet_2"]
+    assert [i["field"] for i in issues if i["code"] == "COMPATIBILITY_SCOPE_REVIEW"] == ["bullet_1"]
+    assert any(i["code"] == "VAGUE_WORDING" and i["field"] == "bullet_2" for i in issues)
+
+
+def test_unmapped_copy_is_distinct_from_empty_mapped_copy():
+    result = review_listings([{"sku": "partial", "title": "Opener"}])
+    assert all(i["code"] != "CONTENT_COMPLETENESS_REVIEW" for i in result["Listing_Issues"])
+    assert "bullet points" in result["Check_Coverage"][0]["content_fields_not_supplied"]

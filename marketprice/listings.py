@@ -7,7 +7,7 @@ from decimal import Decimal
 from .io import MAX_ROWS
 from .listing_facts import UNITS, check_claims, conflict_groups, evidence_rows, normalize, parse_facts
 
-VERSION = "1.1"
+VERSION = "1.2"
 FIELDS = (
     "sku",
     "title",
@@ -42,6 +42,15 @@ ALIASES = {
 }
 VAGUE = ("best", "amazing", "premium", "high quality", "must have", "بهترین", "عالی", "فوق العاده")
 STOP = {"the", "a", "an", "for", "of", "and", "with", "in", "to", "و", "برای", "با", "از", "در"}
+
+# Review explicit English claims about the range of jar, lid or bottle sizes.
+FIT_CLAIM = re.compile(
+    r"\b(?:works? (?:on|with)|opens?|fits?|adapts? to|handles?)\s+"
+    r"(?:any|all|every)\s+(?:(?:tight|sizes?(?: of)?)\s+)?(?:jars?|lids?|bottles?)\b",
+    re.IGNORECASE,
+)
+WORD_HYPHENS = str.maketrans(dict.fromkeys("-‐‑", " "))
+
 
 def tokens(value):
     return set(re.findall(r"[^\W_]+", normalize(value))) - STOP
@@ -163,14 +172,18 @@ def review_listings(rows, *, reference_confirmed=False, fact_rows=None, facts_co
             issue("FACT_CONFLICT", "facts", "; ".join(f.fact_id for f in group),
                   f"Conflicting or disputed facts for {key[0]}.{key[1]}.",
                   "Resolve the evidence conflict before using this attribute.", "ERROR")
-        missing = [f for f in ("highlights", "description") if not str(row.get(f) or "").strip()]
-        if not any(str(row.get(f"bullet_{i}") or "").strip() for i in range(1, 11)):
-            missing.append("bullet points")
+        bullet_columns = [f"bullet_{i}" for i in range(1, 11) if f"bullet_{i}" in row]
+        fields_present = {f: row[f] for f in ("highlights", "description") if f in row}
+        if bullet_columns:
+            fields_present["bullet points"] = any(str(row[c] or "").strip() for c in bullet_columns)
+        missing = [field for field, value in fields_present.items() if not str(value or "").strip()]
         if missing:
             issue("CONTENT_COMPLETENESS_REVIEW", "content", ", ".join(missing),
-                  "These content fields are empty; category-specific requirements are not yet checked.",
-                  "Review whether each field applies and supply supported content.")
+                  "These fields are blank in the supplied catalog row.",
+                  "Check the source listing before deciding whether to add content.")
+        unmapped = [f for f in ("highlights", "description", "bullet points") if f not in fields_present]
         coverage.append({"sku": sku, "row": rownum, "structured_facts": len(supplied_facts),
+                         "content_fields_not_supplied": ", ".join(unmapped),
                          "fact_statuses_reviewed": facts_confirmed,
                          "claim_checks": "Limited English boolean claims and explicit subject/attribute metric measurements",
                          "not_checked": "Full semantics, material/compatibility claims, pack-count assertions, Arabic meaning, marketplace policy, search demand",
@@ -204,7 +217,7 @@ def review_listings(rows, *, reference_confirmed=False, fact_rows=None, facts_co
                     "ERROR",
                 )
             for term in VAGUE:
-                if phrase_in(term, text):
+                if phrase_in(term, text.translate(WORD_HYPHENS)):
                     issue(
                         "VAGUE_WORDING",
                         field,
@@ -219,7 +232,16 @@ def review_listings(rows, *, reference_confirmed=False, fact_rows=None, facts_co
                     issue(check["status"], field, check["observed"], check["reason"],
                           "Verify this claim against the exact product's source-linked facts.",
                           "ERROR" if check["status"] in {"CONTRADICTED_CLAIM", "FACT_CONFLICT"} else "REVIEW")
-            if re.search(r"\d", normalize(text)):
+            fit = FIT_CLAIM.search(text)
+            if fit:
+                issue("COMPATIBILITY_SCOPE_REVIEW", field, fit.group(),
+                      "This wording describes broad jar, lid or bottle compatibility.",
+                      "Check the stated limits against tested sizes and closure types.")
+            number_text = norm
+            if field.startswith("bullet_"):
+                position = field.removeprefix("bullet_")
+                number_text = re.sub(rf"^{position}[.)]\s+", "", norm)
+            if re.search(r"\d", number_text):
                 issue("MEASUREMENT_SCOPE_REVIEW", field, text,
                       "Numbers require attribute, subject and unit review; supported metric comparisons are only partial checks.",
                       "Check pack counts, ranges, unknown units and which component each value describes.")
@@ -270,7 +292,7 @@ def review_listings(rows, *, reference_confirmed=False, fact_rows=None, facts_co
                     "QUANTITY_CONFLICT",
                     "Keyword quantity differs from confirmed reference facts.",
                 )
-            elif any(phrase_in(term, keyword) for term in VAGUE):
+            elif any(phrase_in(term, keyword.translate(WORD_HYPHENS)) for term in VAGUE):
                 status, reason = (
                     "VAGUE",
                     "Generic promotional wording; no search-demand evidence is available.",
