@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
-from .io import workbook_sheets
+from .io import workbook_bytes, workbook_sheets
 from .listing_urls import MAX_LINKS, read_products
 from .quick_review import analyze, file_rows
 from .seller_project import (
@@ -100,7 +100,34 @@ def source_links(text):
     return rows, sources
 
 
-def show_review(rev, fa):
+def up_to_date_review(rev):
+    old_message = {"Next input": "Add purchase_cost and currency columns for per-unit prices and contribution."}
+    if rev["task"] in {"pricing", "profit"} and old_message in rev["report"].get("Checks", []):
+        return {**rev, "report": analyze(rev["task"], rev["inputs"])}
+    return rev
+
+
+def review_workbook(rev):
+    report = rev["report"]
+    tables = {"Summary": [{"Source": rev["source"], "Service": rev["task"], "Source rows": len(rev["inputs"]),
+                           "Saved at": rev["time"], "Answer rows": len(report.get("Answers", report.get("Listing_Summary", [])))}]}
+    for title in ("Checks", "Detected inputs", "Answers", "Cells to check", "Listing_Summary", "Listing_Issues",
+                  "Keyword_Review", "Claim_Checks", "Check_Coverage", "Method", "Sources", "Cost details"):
+        if report.get(title):
+            tables[title] = report[title]
+    tables["Source rows"] = rev["inputs"]
+    return workbook_bytes(tables)
+
+
+def continue_pricing(rev):
+    st.session_state["pricing_source"] = ("project-inputs.xlsx", workbook_bytes({"Products": rev["inputs"]}))
+    st.session_state["catalog_handoff"] = st.session_state.get("catalog_handoff", 0) + 1
+    for key in ("result", "fingerprint", "download", "summary_download"):
+        st.session_state.pop(key, None)
+    navigate("Pricing (قیمت گذاری)")
+
+
+def show_review(rev, fa, role):
     report = rev["report"]
     if rev["task"] == "listing":
         issues = report.get("Listing_Issues", [])
@@ -113,8 +140,13 @@ def show_review(rev, fa):
         st.caption("این بررسی تقاضای جستجو و رتبه فروش را اندازه نمی‌گیرد." if fa else
                    "This review checks listing text. Search demand and sales rank require separate evidence.")
     else:
-        st.subheader("پاسخ شما" if fa else "Your answer")
-        if rev["task"] in {"pricing", "profit"}:
+        needs_setup = "Detected inputs" in report
+        if needs_setup:
+            st.subheader("بررسی فایل قیمت‌گذاری" if fa else "Pricing setup needed")
+            st.write(f"{len(rev['inputs']):,} ردیف خوانده شد." if fa else f"Read {len(rev['inputs']):,} source rows.")
+        else:
+            st.subheader("پاسخ شما" if fa else "Your answer")
+        if rev["task"] in {"pricing", "profit"} and not needs_setup:
             st.caption("قیمت و سود هر واحد با هزینه‌های داده‌شده محاسبه شده‌اند. هدف پیش‌فرض سربه‌سر است." if fa else
                        "Price floors and unit contribution use the costs supplied. The default target is break-even. Confirm omitted fees and taxes before changing a price.")
         answers = report.get("Answers", [])
@@ -135,13 +167,28 @@ def show_review(rev, fa):
                 st.info(("اطلاعات تکمیلی: " if fa else "To complete the first row, add ") + primary["Next input"])
         for issue in report.get("Checks", [])[:4]:
             st.warning(str(issue.get("Next input") or issue.get("explanation") or issue))
-    with st.expander("جزئیات و منبع" if fa else "See inputs and calculation details"):
-        for title, records in report.items():
-            if records and title not in {"Answers", "Original_Listings"}:
-                st.text(title)
-                st.dataframe(records, hide_index=True)
-        st.text(rev["source"])
-        st.dataframe(rev["inputs"], hide_index=True)
+        if needs_setup and role != "viewer":
+            st.button("انتخاب بازار و واحدها" if fa else "Choose channel and units", type="primary",
+                      on_click=continue_pricing, args=(rev,), key="continue_review_pricing")
+        if report.get("Detected inputs"):
+            st.table(report["Detected inputs"])
+    if role != "viewer":
+        st.download_button("دریافت گزارش اکسل" if fa else "Download review as Excel", lambda: review_workbook(rev),
+                           "marketprice-review.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                           on_click="ignore")
+    details = st.expander("جزئیات و منبع" if fa else "See inputs and calculation details",
+                          key="quick_details_"+rev["fingerprint"], on_change="rerun")
+    if details.open:
+        with details:
+            for title, records in report.items():
+                if records and title not in {"Answers", "Original_Listings", "Checks", "Detected inputs"}:
+                    st.text(title)
+                    if title == "Columns outside price calculation":
+                        st.text(" · ".join(str(r.get("Column", "")) for r in records))
+                    else:
+                        st.dataframe(records[:100], hide_index=True)
+            st.caption(("پیش‌نمایش ۱۰۰ ردیف اول" if fa else "Preview of the first 100 rows") + " · " + rev["source"])
+            st.dataframe(rev["inputs"][:100], hide_index=True)
 
 
 def dashboard(history, shared, role, fa):
@@ -149,7 +196,7 @@ def dashboard(history, shared, role, fa):
         latest = {r["task"]: r for r in history}
         overview = []
         for service, review in latest.items():
-            report = review["report"]
+            report = up_to_date_review(review)["report"]
             next_input = ""
             for row in report.get("Answers", []):
                 next_input = row.get("Check") or row.get("Next input") or row.get("For ROI")
@@ -169,21 +216,25 @@ def dashboard(history, shared, role, fa):
         st.dataframe(overview, hide_index=True)
         n = st.selectbox("گزارش ذخیره‌شده" if fa else "Saved reviews", range(len(history)-1, -1, -1),
                          format_func=lambda i: f"{i+1} · {history[i]['source']} · {history[i]['time']}")
-        rev = history[n]
+        rev = up_to_date_review(history[n])
         if rev.get("author"):
             st.caption(("ثبت توسط " if fa else "Saved by ") + rev["author"])
-        show_review(rev, fa)
+        show_review(rev, fa, role)
         earlier = [r for r in history[:n] if r["task"] == rev["task"]]
         if earlier:
-            with st.expander("تغییرات محصولات" if fa else "Compare with the previous input for this service"):
-                delta = changes(earlier[-1]["inputs"], rev["inputs"])
-                if delta:
-                    st.dataframe(delta, hide_index=True)
-                else:
-                    st.write("تغییری دیده نشد." if fa else "The product rows match.")
+            comparison = st.expander("تغییرات محصولات" if fa else "Compare with the previous input for this service",
+                                     key="quick_compare", on_change="rerun")
+            if comparison.open:
+                with comparison:
+                    delta = changes(earlier[-1]["inputs"], rev["inputs"])
+                    if delta:
+                        st.dataframe(delta, hide_index=True)
+                    else:
+                        st.write("تغییری دیده نشد." if fa else "The product rows match.")
         if role == "manager":
-            st.download_button("دریافت کل پروژه" if fa else "Download whole project", export_project(history),
-                               "marketprice-project.json", "application/json")
+            st.caption("فایل JSON برای بازگشایی پروژه است." if fa else "The JSON backup reopens your project with its history.")
+            st.download_button("دریافت کل پروژه" if fa else "Download whole project", lambda: export_project(history),
+                               "marketprice-project.json", "application/json", on_click="ignore")
     else:
         st.info("اولین گزارش شما اینجا ذخیره می‌شود." if fa else "Your first review will appear here.")
     if not shared:
@@ -274,7 +325,7 @@ def render_quick(language, team):
         identity = (task, name, None, hashlib.sha256(encode(reuse["inputs"])).hexdigest())
     last = st.session_state.get("quick_last", ())
     if last and last[0] == identity:
-        show_review(last[1], fa)
+        show_review(last[1], fa, role)
         st.button("مشاهده پروژه" if fa else "View in project", on_click=enter, args=("dashboard",))
         return
     if not upload and not reuse and not st.button("خواندن لینک‌ها" if fa else "Read links", type="primary"):
@@ -302,7 +353,7 @@ def render_quick(language, team):
     if reuse:
         st.session_state["quick_reuse"] = (task, "saved", rev["fingerprint"])
     st.session_state["quick_last"] = (identity, rev)
-    show_review(rev, fa)
+    show_review(rev, fa, role)
     st.button("مشاهده پروژه" if fa else "View in project", on_click=enter, args=("dashboard",))
 
 

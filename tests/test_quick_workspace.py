@@ -104,3 +104,51 @@ def test_read_only_team_dashboard_has_no_review_or_project_download():
         assert app.title[0].value == "Project dashboard"
         assert not app.get("file_uploader") and not app.get("download_button")
         assert not any(b.key == "quick_pricing" for b in app.button)
+
+
+def test_restored_multi_channel_review_can_be_finished_without_reupload():
+    from io import BytesIO
+
+    from openpyxl import load_workbook
+
+    from marketprice.quick_ui import review_workbook, up_to_date_review
+
+    rows = [{"کد": "001", "قیمت خرید": 50, "قیمت فروش دیجی": False, "قیمت فروش اسنپ": 750},
+            {"کد": "002", "قیمت خرید": False, "قیمت فروش دیجی": 900, "قیمت فروش اسنپ": 800}]
+    old = revision("pricing", "test.xlsx", rows, {"Answers": [], "Checks": [
+        {"Next input": "Add purchase_cost and currency columns for per-unit prices and contribution."}]})
+    view = up_to_date_review(old)
+    report = view["report"]
+    assert not report["Answers"] and len(report["Checks"]) == 2
+    assert len(report["Cells to check"]) == 2
+    assert {r["Channel"] for r in report["Detected inputs"]} == {"Shared", "Digikala", "Snapp Shop"}
+    book = load_workbook(BytesIO(review_workbook(view)), read_only=True)
+    assert book["Source rows"]["A2"].value == "001" and book["Source rows"]["B3"].value is False
+    book.close()
+    app = AppTest.from_file("../app.py").run()
+    app.button(key="quick_dashboard").click().run()
+    app.get("file_uploader")[0].upload("project.json", export_project([old])).run()
+    assert app.session_state["quick_history"] == [old]
+    assert app.button(key="continue_review_pricing")
+    assert not any("Add purchase_cost" in x.value for x in app.warning)
+    app.button(key="continue_review_pricing").click().run()
+    assert app.session_state["workspace"] == "Pricing (قیمت گذاری)"
+    assert app.session_state["import_rows"] == rows
+    assert not app.exception
+
+
+@pytest.mark.parametrize("task", ["pricing", "profit", "campaign", "storage", "listing"])
+def test_all_quick_tools_reach_results_dashboard_home_and_reuse(task):
+    app = AppTest.from_file("../app.py").run()
+    app.button(key="quick_"+task).click().run()
+    source = b"sku,title,purchase_cost,current_price,currency,impressions,clicks,units stored,monthly storage fee per unit,months stored\nA1,Box,10,20,USD,200,10,2,3,4"
+    app.get("file_uploader")[0].upload("sample.csv", source).run()
+    assert app.session_state["quick_history"][-1]["task"] == task
+    assert any(b.label == "Download review as Excel" for b in app.get("download_button"))
+    next(b for b in app.button if b.label == "View in project").click().run()
+    assert app.title[0].value == "Project dashboard"
+    next(b for b in app.button if b.label == "← Home").click().run()
+    app.button(key="quick_"+task).click().run()
+    app.get("file_uploader")[0].set_value(None).run()
+    app.button(key="reuse_"+task).click().run()
+    assert len(app.session_state["quick_history"]) == 1 and not app.exception
