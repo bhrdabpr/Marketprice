@@ -29,13 +29,14 @@ from marketprice.operations_ui import render_operations
 from marketprice.opportunity_ui import render_opportunity
 from marketprice.presentation import field_label, filter_results
 from marketprice.presentation import preview as localized_preview
+from marketprice.quick_ui import quick_workspace, team_access
 from marketprice.replacement_ui import render_replacement
 from marketprice.samples import sample_rows
 from marketprice.settlement_scenarios import review_delay
 from marketprice.templates import load_setup, save_setup
 from marketprice.validation import number
 from marketprice.workbook_review import price_dependent_costs
-from marketprice.workspace_ui import SECTIONS, hero, overview, section_label, steps
+from marketprice.workspace_ui import SECTIONS, hero, section_label, steps
 
 
 def t(text):
@@ -110,9 +111,15 @@ language = st.sidebar.radio(
     horizontal=True,
     key="ui_language",
 )
+team = team_access(language)
+if team[2] == "viewer":
+    quick_workspace(language, team)
+    st.stop()
+display_panel = st.sidebar.expander("تنظیمات نمایش و فضای کار" if language == "fa" else "Display and workspace settings",
+                               expanded=st.session_state.get("workspace", "Overview") != "Overview")
 workspace_key = "workspace__" + language
 st.session_state[workspace_key] = st.session_state.get("workspace", "Overview")
-workspace = st.sidebar.radio(
+workspace = display_panel.radio(
     "فضای کار" if language == "fa" else "Workspace",
     list(SECTIONS), index=0,
     format_func=lambda value: section_label(value, language),
@@ -128,12 +135,12 @@ display_currency = select_localized(
         else ({"IRR": "ریال", "TOMAN": "تومان"}[value] if language == "fa" else value)
     ),
     key="display_currency",
-    container=st.sidebar,
+    container=display_panel,
 )
-persian_digits = st.sidebar.checkbox(
+persian_digits = display_panel.checkbox(
     t("Use Persian digits"), value=language == "fa", key="digits_" + language
 )
-with st.sidebar.expander("تبدیل دستی ارز" if language == "fa" else "Manual currency converter"):
+with display_panel.expander("تبدیل دستی ارز" if language == "fa" else "Manual currency converter"):
     st.caption("نرخ را خودتان وارد کنید؛ این ابزار قیمت‌های فایل را تغییر نمی‌دهد." if language == "fa" else "Enter your own rate. This calculator does not change file prices.")
     amount = st.number_input("مبلغ" if language == "fa" else "Amount", min_value=0.0, key="converter_amount")
     source = st.selectbox("از واحد" if language == "fa" else "From", ["USD", "EUR", "IRR", "TOMAN"], key="converter_from")
@@ -148,7 +155,7 @@ with st.sidebar.expander("تبدیل دستی ارز" if language == "fa" else "
         st.write(f"{Decimal(str(amount)) * Decimal(str(rate)):,.2f} {destination}")
     else:
         st.info("نرخ تبدیل را وارد کنید." if language == "fa" else "Enter an exchange rate.")
-with st.sidebar.expander("راهنمای واحدها" if language == "fa" else "Display units help"):
+with display_panel.expander("راهنمای واحدها" if language == "fa" else "Display units help"):
     st.caption(t("Display units only; input units and exported amounts remain unchanged. 1 toman = 10 rial. Other currencies are never converted."))
 direction = "rtl" if language == "fa" else "ltr"
 st.markdown(
@@ -179,7 +186,8 @@ if workspace not in {"Pricing (قیمت گذاری)", "Campaigns"}:
     for state_key in list(st.session_state):
         if isinstance(state_key, str) and (state_key.startswith(("confirm_", "currency_confirm_", "correction_", "tax_", "omitted_", "estimates_", "unit_", "map_", "worksheet_", "event_margin_", "event_cost_")) or state_key in {"target_margin", "flexible_mode", "extra_margins", "campaign_discounts", "platform_share", "allow_unsafe", "cached_values", "csv_encoding", "advanced_matching", "review_ignored", "cost_scope_enabled", "applicable_cost_fields", "event_selection", "store_name"}):
             st.session_state[state_key] = st.session_state[state_key]
-hero(workspace, language)
+if workspace != "Overview":
+    hero(workspace, language)
 with st.sidebar, st.expander("نشست" if language == "fa" else "Session"):
     st.button(t("Clear session data"), key="clear_session", on_click=clear_business_session)
 if workspace == "Changes":
@@ -190,7 +198,7 @@ if workspace == "Listings":
     render_listings(language)
     st.stop()
 if workspace == "Overview":
-    overview(language)
+    quick_workspace(language, team)
     st.stop()
 if workspace == "Cost impact":
     steps(language, [("Set period & currency", "انتخاب دوره و واحد"), ("Enter costs", "ورود هزینه‌ها"), ("Review impact", "بررسی اثر"), ("Download scenario", "دریافت سناریو")])

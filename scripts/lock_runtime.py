@@ -20,8 +20,9 @@ def visit(name):
             visit(req.name)
 
 
-for root in ["streamlit", "openpyxl", "pydantic", "defusedxml", "pip"]:
+for root in ["streamlit", "openpyxl", "pydantic", "defusedxml", "pypdf", "certifi", "pip"]:
     visit(root)
 Path("requirements.lock").write_text(
     "".join(f"{k}=={v}\n" for k, v in sorted(seen.items(), key=lambda x: x[0].lower()))
 )
+

@@ -2,3 +2,6 @@ streamlit==1.66.1
 openpyxl==3.1.5
 pydantic==2.14.2
 defusedxml==0.7.1
+
+certifi==2026.10.23
+pypdf==7.1.1

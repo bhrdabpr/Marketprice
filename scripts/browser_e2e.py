@@ -25,6 +25,21 @@ with sync_playwright() as pw:
     browser = pw.chromium.launch()
     page = browser.new_page(viewport={"width": 1440, "height": 1080}, device_scale_factor=1)
     page.goto(url)
+    page.get_by_role("button", name="Check my campaign").click()
+    page.locator("input[type=file]").set_input_files({
+        "name": "campaign.csv", "mimeType": "text/csv",
+        "buffer": b"impressions,clicks,spend,attributed orders,attributed sales,currency\n400,20,24,4,96,AED",
+    })
+    page.get_by_text("CTR (%)", exact=True).first.wait_for()
+    page.get_by_role("button", name="View in project").click()
+    page.get_by_role("heading", name="Project dashboard").wait_for()
+    with page.expect_download() as project_item:
+        page.get_by_role("button", name="Download whole project").click()
+    project = json.loads(Path(project_item.value.path()).read_text())
+    answer = project["history"][0]["report"]["Answers"][0]
+    assert float(answer["CTR (%)"]) == 5 and float(answer["Cost per attributed order"]) == 6
+    page.get_by_role("button", name="← Home").click()
+    page.get_by_text("Detailed tools", exact=True).click()
     page.locator(".st-key-tool_pricing button").click()
     page.get_by_role("heading", name="Pricing & campaigns", exact=True).wait_for(timeout=30000)
     for locale, label in [("فارسی", "قیمت و کمپین"), ("English", "Pricing & campaigns")]:
