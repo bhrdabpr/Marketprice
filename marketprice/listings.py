@@ -1,12 +1,13 @@
 """Offline evidence-based listing checks. No keyword-volume or ranking predictions."""
 
 import re
-import unicodedata
+from collections import Counter
 from decimal import Decimal
 
 from .io import MAX_ROWS
+from .listing_facts import UNITS, check_claims, conflict_groups, evidence_rows, normalize, parse_facts
 
-VERSION = "1.0"
+VERSION = "1.1"
 FIELDS = (
     "sku",
     "title",
@@ -41,34 +42,6 @@ ALIASES = {
 }
 VAGUE = ("best", "amazing", "premium", "high quality", "must have", "بهترین", "عالی", "فوق العاده")
 STOP = {"the", "a", "an", "for", "of", "and", "with", "in", "to", "و", "برای", "با", "از", "در"}
-# Only comparable physical dimensions are checked; unit counts never use floating point.
-UNITS = {
-    "ml": ("volume", "1"),
-    "milliliter": ("volume", "1"),
-    "میلی لیتر": ("volume", "1"),
-    "l": ("volume", "1000"),
-    "liter": ("volume", "1000"),
-    "لیتر": ("volume", "1000"),
-    "mm": ("length", "1"),
-    "cm": ("length", "10"),
-    "m": ("length", "1000"),
-    "g": ("mass", "1"),
-    "kg": ("mass", "1000"),
-    "گرم": ("mass", "1"),
-    "کیلوگرم": ("mass", "1000"),
-}
-
-
-def normalize(value):
-    return " ".join(
-        unicodedata.normalize("NFKC", str(value or ""))
-        .translate(str.maketrans("يك۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "یک01234567890123456789"))
-        .replace("\u200c", " ")
-        .replace("٫", ".")
-        .casefold()
-        .split()
-    )
-
 
 def tokens(value):
     return set(re.findall(r"[^\W_]+", normalize(value))) - STOP
@@ -110,13 +83,27 @@ def quantities(text):
     return result
 
 
-def review_listings(rows, *, reference_confirmed=False):
+def review_listings(rows, *, reference_confirmed=False, fact_rows=None, facts_confirmed=False):
     if not rows or len(rows) > MAX_ROWS:
         raise ValueError("Provide 1 to 100000 listing rows.")
     issues: list[dict] = []
     summaries: list[dict] = []
     keywords: list[dict] = []
-    seen = set()
+    facts = parse_facts(fact_rows or [])
+    identities = Counter(str(row.get("sku") or "").strip() for row in rows)
+    if any(f.sku not in identities for f in facts):
+        raise ValueError("FACT_SKU_MISMATCH: facts contain SKUs absent from the listing catalog")
+    by_sku: dict[str, list] = {}
+    for fact in facts:
+        by_sku.setdefault(fact.sku, []).append(fact)
+    unsafe_skus = {str(row.get("sku") or "").strip() for row in rows if not isinstance(row.get("sku"), str)}
+    excluded_ids = {f.fact_id for sku, group in by_sku.items() for f in group
+                    if identities[sku] != 1 or sku in unsafe_skus}
+    for group in by_sku.values():
+        for conflicting in conflict_groups(group).values():
+            excluded_ids.update(f.fact_id for f in conflicting)
+    claim_checks: list[dict] = []
+    coverage: list[dict] = []
     for rownum, row in enumerate(rows, 2):
         sku = str(row.get("sku") or "").strip()
         start = len(issues)
@@ -135,7 +122,7 @@ def review_listings(rows, *, reference_confirmed=False):
                 }
             )
 
-        if not sku or sku in seen:
+        if not sku or identities[sku] > 1:
             issue(
                 "INVALID_IDENTITY",
                 "sku",
@@ -144,7 +131,6 @@ def review_listings(rows, *, reference_confirmed=False):
                 "Use a unique text SKU for each variant.",
                 "ERROR",
             )
-        seen.add(sku)
         if not isinstance(row.get("sku"), str):
             issue(
                 "NUMERIC_IDENTITY",
@@ -168,6 +154,27 @@ def review_listings(rows, *, reference_confirmed=False):
                 "Verified reference facts are missing or unconfirmed.",
                 "Supply product specifications and confirm their source before judging factual accuracy.",
             )
+        supplied_facts = by_sku.get(sku, [])
+        usable_facts = supplied_facts if facts_confirmed and identities[sku] == 1 and sku not in unsafe_skus else []
+        if supplied_facts and not facts_confirmed:
+            issue("FACTS_UNCONFIRMED", "facts", "", "Structured fact statuses have not been reviewed.",
+                  "Review the sources and confirmation status for each fact.")
+        for key, group in conflict_groups(usable_facts).items():
+            issue("FACT_CONFLICT", "facts", "; ".join(f.fact_id for f in group),
+                  f"Conflicting or disputed facts for {key[0]}.{key[1]}.",
+                  "Resolve the evidence conflict before using this attribute.", "ERROR")
+        missing = [f for f in ("highlights", "description") if not str(row.get(f) or "").strip()]
+        if not any(str(row.get(f"bullet_{i}") or "").strip() for i in range(1, 11)):
+            missing.append("bullet points")
+        if missing:
+            issue("CONTENT_COMPLETENESS_REVIEW", "content", ", ".join(missing),
+                  "These content fields are empty; category-specific requirements are not yet checked.",
+                  "Review whether each field applies and supply supported content.")
+        coverage.append({"sku": sku, "row": rownum, "structured_facts": len(supplied_facts),
+                         "fact_statuses_reviewed": facts_confirmed,
+                         "claim_checks": "Limited English boolean claims and explicit subject/attribute metric measurements",
+                         "not_checked": "Full semantics, material/compatibility claims, pack-count assertions, Arabic meaning, marketplace policy, search demand",
+                         "overall": "HUMAN_REVIEW_REQUIRED"})
         content_fields = (
             ("title", "highlights") + tuple(f"bullet_{i}" for i in range(1, 11)) + ("description",)
         )
@@ -206,7 +213,21 @@ def review_listings(rows, *, reference_confirmed=False):
                         "Replace with a specific, evidenced benefit or specification.",
                         "SUGGESTION",
                     )
+            for check in check_claims(text, usable_facts, row.get("reference", "") if trusted else ""):
+                claim_checks.append({"sku": sku, "row": rownum, "field": field, **check})
+                if check["status"] != "SUPPORTED_FACT":
+                    issue(check["status"], field, check["observed"], check["reason"],
+                          "Verify this claim against the exact product's source-linked facts.",
+                          "ERROR" if check["status"] in {"CONTRADICTED_CLAIM", "FACT_CONFLICT"} else "REVIEW")
+            if re.search(r"\d", normalize(text)):
+                issue("MEASUREMENT_SCOPE_REVIEW", field, text,
+                      "Numbers require attribute, subject and unit review; supported metric comparisons are only partial checks.",
+                      "Check pack counts, ranges, unknown units and which component each value describes.")
             for dimension, values in quantities(text).items():
+                if len(reference_quantities.get(dimension, set())) > 1:
+                    issue("QUANTITY_CONTEXT_REQUIRED", field, text,
+                          "Reference contains multiple values in this dimension; pooled values cannot validate components.",
+                          "Provide separate subject/attribute facts for each component.")
                 if dimension in reference_quantities and not values <= reference_quantities[dimension]:
                     issue(
                         "QUANTITY_CONFLICT",
@@ -235,7 +256,13 @@ def review_listings(rows, *, reference_confirmed=False):
                 continue
             candidate = tokens(keyword)
             overlap = candidate & tokens(evidence)
-            if trusted and any(
+            keyword_checks = check_claims(keyword, usable_facts, row.get("reference", "") if trusted else "")
+            for check in keyword_checks:
+                claim_checks.append({"sku": sku, "row": rownum, "field": "keywords", **check})
+            failed_checks = [c for c in keyword_checks if c["status"] != "SUPPORTED_FACT"]
+            if failed_checks:
+                status, reason = failed_checks[0]["status"], failed_checks[0]["reason"]
+            elif trusted and any(
                 d in reference_quantities and not v <= reference_quantities[d]
                 for d, v in quantities(keyword).items()
             ):
@@ -252,8 +279,8 @@ def review_listings(rows, *, reference_confirmed=False):
                 status, reason = "NEEDS_EVIDENCE", "Confirm reference specifications first."
             elif candidate and candidate <= tokens(evidence):
                 status, reason = (
-                    "SUPPORTED_WORDS",
-                    "Words occur in supplied product facts; intent still needs review.",
+                    "WORDS_PRESENT_REVIEW_REQUIRED",
+                    "Word overlap is not factual support. Negation, intent and attribute meaning need review.",
                 )
             else:
                 status = "REVIEW_RELEVANCE"
@@ -272,7 +299,7 @@ def review_listings(rows, *, reference_confirmed=False):
                     "matched_words": ", ".join(sorted(overlap)),
                 }
             )
-            if status != "SUPPORTED_WORDS":
+            if status != "SUPPORTED_FACT":
                 issue(
                     "KEYWORD_" + status,
                     "keywords",
@@ -286,7 +313,7 @@ def review_listings(rows, *, reference_confirmed=False):
                 "sku": sku,
                 "title": title,
                 "issues": len(issues) - start,
-                "status": "REVIEW" if len(issues) > start else "NO_FLAGS_IN_CHECKED_RULES",
+                "status": "REVIEW_REQUIRED",
                 "reference_confirmed": trusted,
                 "decision_ready": False,
             }
@@ -296,10 +323,13 @@ def review_listings(rows, *, reference_confirmed=False):
         "Listing_Issues": issues,
         "Keyword_Review": keywords,
         "Original_Listings": rows,
+        "Product_Facts": evidence_rows(facts, facts_confirmed, excluded_ids),
+        "Claim_Checks": claim_checks,
+        "Check_Coverage": coverage,
         "Method": [
             {
                 "version": VERSION,
-                "method": "Offline lexical and explicit quantity checks",
+                "method": "Conservative wording, quantity and source-linked structured fact checks",
                 "limitation": "No semantic verdict, marketplace certification, search volume or ranking forecast.",
             }
         ],
