@@ -120,7 +120,8 @@ def boolean_claims(text):
             prefix = re.split(r"[.;!?]", text[:match.start()])[-1]
             negative = bool(re.search(r"(?:\bnot|\bnon|\bnever)\s*[- ]?(?:\w+\s+){0,2}$", prefix))
             # Conditional wording does not establish an unconditional product property.
-            uncertain = bool(re.search(r"\b(if|unless|may|might|whether|only)\b", prefix[-70:]))
+            suffix = re.split(r"[.;!]", text[match.end():], maxsplit=1)[0]
+            uncertain = bool(re.search(r"\b(if|unless|may|might|whether|only)\b", prefix[-70:] + " " + suffix)) or "?" in suffix
             claims.append((attribute, None if uncertain else not negative, prefix))
     return claims
 
@@ -159,7 +160,8 @@ def check_claims(text, facts, legacy_reference=""):
         for match in re.finditer(pattern, normalized):
             unit = UNITS.get(match[2])
             prefix = re.split(r"[.;!?]", normalized[:match.start()])[-1]
-            if re.search(r"\b(not|if|unless|may|might|without)\b", prefix[-50:]):
+            suffix = re.split(r"[.;!]", normalized[match.end():], maxsplit=1)[0]
+            if prefix.strip() or "?" in suffix or re.search(r"\b(if|unless|may|might|only)\b", suffix):
                 status = "MEASUREMENT_REVIEW"
             elif (subject, attribute) in conflicts:
                 status = "FACT_CONFLICT"

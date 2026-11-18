@@ -194,3 +194,17 @@ def test_uploaded_facts_and_invalid_replacement_hide_report(monkeypatch, extensi
     assert not app.exception
     assert any("FACT_SOURCE" in e.value for e in app.error)
     assert not any(d.proto.label == "Download listing review workbook" for d in app.get("download_button"))
+
+
+@pytest.mark.parametrize("text", ["Bottle is insulated?", "Bottle is insulated if a sleeve is fitted",
+                                  "Bottle is insulated only with its cover"])
+def test_questions_and_trailing_conditions_cannot_support_claim(text):
+    checks = check_claims(text, parse_facts([fact(value="true")]))
+    assert checks[0]["status"] == "CLAIM_REVIEW"
+
+
+@pytest.mark.parametrize("text", ["Bottle height 20 cm?", "Bottle height 20 cm if extended",
+                                  "Unlike bottle height 20 cm, this one is 30 cm"])
+def test_measurement_questions_conditions_and_comparisons_need_review(text):
+    checks = check_claims(text, parse_facts([fact(attribute="height", value="20", unit="cm")]))
+    assert checks[0]["status"] == "MEASUREMENT_REVIEW"
