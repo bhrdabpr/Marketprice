@@ -106,7 +106,7 @@ def test_repeated_equivalent_sources_are_not_a_conflict():
 
 
 def test_legacy_negation_and_unsupported_assertions_are_visible():
-    result = review_listings([{"sku": "001", "title": "Dishwasher safe bottle 32 oz",
+    result = review_listings([{"sku": "001", "title": "Dishwasher safe bottle 32 oz", "description": "",
                                "reference": "Bottle is not insulated", "keywords": "insulated bottle"}],
                               reference_confirmed=True)
     assert result["Keyword_Review"][0]["status"] == "NEGATION_REVIEW"
