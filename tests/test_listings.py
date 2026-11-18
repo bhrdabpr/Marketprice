@@ -16,7 +16,7 @@ def test_example_conflicts_keywords_and_export():
     result = review_listings(rows, reference_confirmed=True)
     assert any(i["code"] == "QUANTITY_CONFLICT" for i in result["Listing_Issues"])
     assert {k["keyword"]: k["status"] for k in result["Keyword_Review"]} == {
-        "steel bottle": "SUPPORTED_WORDS",
+        "steel bottle": "WORDS_PRESENT_REVIEW_REQUIRED",
         "gaming laptop": "REVIEW_RELEVANCE",
         "best": "VAGUE",
     }

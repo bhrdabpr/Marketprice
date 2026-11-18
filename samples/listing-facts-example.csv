@@ -1,0 +1,4 @@
+fact_id,sku,subject,attribute,value,unit,status,source,source_locator
+F1,BOTTLE-001,bottle,capacity,500,ml,confirmed,Synthetic product specification,Capacity row
+F2,BOTTLE-001,bottle,insulated,false,,confirmed,Synthetic product specification,Construction row
+F3,BOTTLE-001,bottle,dishwasher_safe,false,,unverified,Synthetic product specification,Care row

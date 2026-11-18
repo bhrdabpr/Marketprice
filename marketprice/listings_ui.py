@@ -6,11 +6,19 @@ import json
 import streamlit as st
 
 from .io import read_upload, workbook_bytes, workbook_sheets
+from .listing_facts import parse_facts
 from .listings import FIELDS, map_listing_rows, review_listings, suggest_listing_mapping
 from .workspace_ui import steps
 
 SAMPLE = b"""sku,title,highlights,bullet_1,description,keywords,product_type,brand,model,reference
 BOTTLE-001,Acme Flow 1 L bottle,Best premium bottle,Stainless steel,Acme Flow stainless steel bottle,"steel bottle; gaming laptop; best",bottle,Acme,Flow,Acme Flow stainless steel water bottle capacity 500 ml
+"""
+
+
+FACT_SAMPLE = b"""fact_id,sku,subject,attribute,value,unit,status,source,source_locator
+F1,BOTTLE-001,bottle,capacity,500,ml,confirmed,Synthetic product specification,Capacity row
+F2,BOTTLE-001,bottle,insulated,false,,confirmed,Synthetic product specification,Construction row
+F3,BOTTLE-001,bottle,dishwasher_safe,false,,unverified,Synthetic product specification,Care row
 """
 
 
@@ -107,13 +115,53 @@ def render_listings(language):
             key=f"listing_reference_{digest}_{epoch}",
         )
         mapped = map_listing_rows(rows, mapping)
+        fact_rows = []
+        facts_confirmed = False
+        facts_source = {}
+        with st.expander(t("Product facts and sources", "مشخصات محصول و منابع"), expanded=True):
+            st.caption(t(
+                "Add one fact per row for the exact SKU and component (for example bottle or cap). "
+                "Use confirmed, unverified or disputed status. Confirmed facts require a source. CSV must use UTF-8 encoding. "
+                "This records your evidence; it does not independently verify the source.",
+                "هر سطر یک مشخصه برای کد محصول و جزء دقیق آن است. وضعیت confirmed، unverified یا disputed "
+                "را انتخاب کنید. مشخصه تأییدشده به منبع نیاز دارد؛ برنامه اعتبار منبع را مستقلاً تأیید نمی‌کند."))
+            st.download_button(t("Download facts template", "دریافت الگوی مشخصات"), FACT_SAMPLE,
+                               "listing_facts.csv", on_click="ignore")
+            facts_upload = st.file_uploader(t("Product facts (.csv / .xlsx)", "فایل مشخصات (.csv / .xlsx)"),
+                                           type=["csv", "xlsx"], key=f"listing_facts_upload_{epoch}",
+                                           max_upload_size=50)
+            example_facts = st.checkbox(t("Use synthetic example facts", "استفاده از مشخصات نمونه ساختگی"),
+                                        key=f"listing_facts_demo_{epoch}") if demo and upload is None else False
+            if facts_upload is not None or example_facts:
+                fact_data, fact_filename = ((facts_upload.getvalue(), facts_upload.name)
+                                            if facts_upload is not None else (FACT_SAMPLE, "synthetic_facts.csv"))
+                fact_digest = hashlib.sha256(fact_data).hexdigest()
+                fact_sheet = None
+                fact_delimiter = ","
+                if fact_filename.lower().endswith(".xlsx"):
+                    fact_sheet = st.selectbox(t("Facts worksheet", "برگه مشخصات"), workbook_sheets(fact_data),
+                                              key=f"listing_facts_sheet_{fact_digest}_{epoch}")
+                else:
+                    fact_delimiter = st.selectbox(t("Facts CSV separator", "جداکننده فایل مشخصات"),
+                                                  [",", ";", "\t"], key=f"listing_facts_separator_{epoch}")
+                fact_rows = read_upload(fact_data, fact_filename, preserve_headers=True,
+                                        sheet_name=fact_sheet, delimiter=fact_delimiter)
+                parse_facts(fact_rows)
+                st.dataframe(fact_rows[:50], hide_index=True)
+                facts_source = {"filename": fact_filename, "sha256": fact_digest,
+                                "sheet": fact_sheet or "", "delimiter": fact_delimiter,
+                                "encoding": "utf-8-sig"}
+                facts_confirmed = st.checkbox(
+                    t("I reviewed the fact statuses and their source references", "وضعیت مشخصات و منابع آن‌ها را بررسی کردم"),
+                    key=f"listing_facts_confirm_{fact_digest}_{fact_sheet}_{fact_delimiter}_{epoch}")
         # Full request fingerprint prevents stale reports after any input/mapping change.
         fingerprint = hashlib.sha256(
-            json.dumps([digest, sheet, delimiter, encoding, mapping, confirmed, marketplace], sort_keys=True).encode()
+            json.dumps([digest, sheet, delimiter, encoding, mapping, confirmed, marketplace, facts_source, facts_confirmed], sort_keys=True).encode()
         ).hexdigest()
         st.subheader(t("3 · Run the content checks", "۳ · اجرای بررسی محتوا"))
         if st.button(t("Review catalog listings", "بررسی محتوای کاتالوگ"), key="listing_run", type="primary"):
-            result = review_listings(mapped, reference_confirmed=confirmed)
+            result = review_listings(mapped, reference_confirmed=confirmed,
+                                     fact_rows=fact_rows, facts_confirmed=facts_confirmed)
             result["Sources"] = [
                 {
                     "marketplace": marketplace,
@@ -124,6 +172,8 @@ def render_listings(language):
                     "mapping": json.dumps(mapping, ensure_ascii=False),
                 }
             ]
+            if facts_source:
+                result["Sources"].append({"role": "structured_product_facts", **facts_source})
             st.session_state["listing_result"] = (fingerprint, result)
         saved = st.session_state.get("listing_result")
         if saved and saved[0] == fingerprint:
@@ -134,10 +184,18 @@ def render_listings(language):
             columns[0].metric(t("Products", "محصولات"), len(result["Listing_Summary"]))
             columns[1].metric(t("Review items", "موارد بررسی"), len(result["Listing_Issues"]))
             columns[2].metric(t("Keywords checked", "کلیدواژه‌های بررسی‌شده"), len(result["Keyword_Review"]))
+            st.warning(t("Human review required. Matching words and supported individual facts do not validate an entire listing.",
+                         "بررسی انسانی لازم است؛ تطابق واژه‌ها یا یک مشخصه، تأیید کل محتوا نیست."))
             st.dataframe(result["Listing_Summary"], hide_index=True)
             st.dataframe(result["Listing_Issues"], hide_index=True)
             if result["Keyword_Review"]:
                 st.dataframe(result["Keyword_Review"], hide_index=True)
+            with st.expander(t("Evidence and check coverage", "شواهد و دامنه بررسی")):
+                st.dataframe(result["Check_Coverage"], hide_index=True)
+                if result["Product_Facts"]:
+                    st.dataframe(result["Product_Facts"], hide_index=True)
+                if result["Claim_Checks"]:
+                    st.dataframe(result["Claim_Checks"], hide_index=True)
             st.download_button(
                 t("Download listing review workbook", "دریافت گزارش اکسل محتوا"),
                 workbook_bytes(result),
