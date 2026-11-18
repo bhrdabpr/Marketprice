@@ -41,3 +41,20 @@ h1,h2,h3{color:#17223b;letter-spacing:-.025em}h3{font-size:21px!important}
 
 
 .mp-steps span{display:flex;align-items:center;gap:9px}.mp-steps b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#fff;color:#2456cd;flex-shrink:0}
+
+/* The first visit is a single choice, with large tap targets at every width. */
+[class*="st-key-quick_"] button[kind="secondary"] {
+  min-height: 4.25rem;
+  justify-content: flex-start;
+  padding-inline: 1.35rem;
+  background-color: #fff;
+  border: 1px solid #ccd7e4;
+  border-radius: 14px;
+  color: #1a3551;
+}
+[class*="st-key-quick_"] button[kind="secondary"]:hover,
+[class*="st-key-quick_"] button[kind="secondary"]:focus-visible {
+  border-color: #316ac3;
+  background-color: #f1f6ff;
+}
+[class*="st-key-quick_"] button p { font-size: 1.05rem; font-weight: 600; }

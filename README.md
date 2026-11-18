@@ -1,5 +1,9 @@
 # MarketPrice
 
+## First visit
+
+Choose **Price my products**, **Check my campaign**, **Improve my listing**, **Check my profit** or **Calculate storage cost**, then add your file. The answer appears automatically. For a public Amazon listing, paste the product link and select **Read links**. **Open project dashboard** shows the saved quick reviews and product changes. Download the whole project to continue in a later session. [Quick review inputs and optional team access](docs/GUIDED_WORKSPACE.md#quick-review-and-project-history)
+
 ## [▶ Open MarketPrice](https://marketprice-bhrdabpr.streamlit.app/)
 
 Use it in your browser—no GitHub account or installation needed. The online demo processes files on its server; use synthetic or non-confidential data. It may take a moment to wake up.
@@ -39,7 +43,7 @@ A campaign requiring 1.25× sales needs 25% more units to preserve contribution 
 
 MarketPrice opens on **Home · choose a tool**. Start with pricing, campaign analysis, catalog listing review, financial performance, hidden costs, price/sales observations or report comparison. Each workspace shows its inputs, review steps and downloadable output.
 
-**Catalog listing review (preview)** accepts Excel and CSV for Amazon.com or Amazon.ae. It checks explicit quantities, duplicate content, vague wording and keyword evidence against supplied product facts. It does not provide live search volumes, competitor ranks, semantic relevance certification or generated copy. The selected store is recorded as context; store-specific policy validation is not implemented. [Workflow and validation details](docs/GUIDED_WORKSPACE.md).
+**Catalog listing review (preview)** accepts Excel, CSV, public Amazon.com or Amazon.ae product URLs (up to 20 per batch), and saved Amazon product HTML. Choose the store and listing source, then read the pages to preview item names, bullets and descriptions. When Amazon blocks access, select Saved Amazon page and upload the HTML saved from the product URL in your browser. It checks explicit quantities, duplicate content, vague wording and keyword evidence against supplied product facts. It does not provide live search volumes, competitor ranks, semantic relevance certification or generated copy. The selected store is recorded as context; store-specific policy validation is not implemented. [Workflow and validation details](docs/GUIDED_WORKSPACE.md).
 
 ## Try it in five steps
 
